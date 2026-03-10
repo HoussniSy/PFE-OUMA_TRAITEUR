@@ -1,0 +1,55 @@
+# ============================================
+# OUMA TRAITEUR - .gitignore
+# ============================================
+
+# ---- Dépendances ----
+/vendor/
+/app/vendor/
+/app/node_modules/
+/mobile/node_modules/
+node_modules/
+
+# ---- Symfony ----
+/app/.env.local
+/app/.env.local.php
+/app/.env.*.local
+/app/config/secrets/prod/prod.decrypt.private.php
+/app/public/bundles/
+/app/var/
+/app/public/build/
+
+# ---- JWT Keys ----
+/app/config/jwt/*.pem
+
+# ---- Fichiers de lock (optionnel, souvent exclus pour les projets applicatifs) ----
+/composer.lock
+/app/composer.lock
+/app/symfony.lock
+/app/package-lock.json
+/mobile/package-lock.json
+package-lock.json
+
+# ---- Docker ----
+.env.docker
+
+# ---- Logs ----
+npm-debug.log
+yarn-error.log
+
+# ---- IDE / Éditeur ----
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ---- Expo / React Native ----
+/mobile/.expo/
+/mobile/.idea/
+
+# ---- OS ----
+.DS_Store
+Thumbs.db
+desktop.ini
