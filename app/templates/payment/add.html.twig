@@ -1,0 +1,175 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Ajouter un paiement - Ouma Traiteur{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1><i class="bi bi-credit-card"></i> Ajouter un paiement</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Accueil</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_document_index') }}">Documents</a></li>
+                    {% if document %}
+                        <li class="breadcrumb-item"><a href="{{ path('app_document_show', {id: document.id}) }}">{{ document.number }}</a></li>
+                    {% endif %}
+                    <li class="breadcrumb-item active">Nouveau paiement</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    {% if document %}
+        <div class="alert alert-info mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h5 class="alert-heading mb-2"><i class="bi bi-info-circle"></i> Informations de la facture</h5>
+                    <p class="mb-1"><strong>Numéro :</strong> {{ document.number }}</p>
+                    <p class="mb-1"><strong>Client :</strong> {{ document.client.name }}</p>
+                    <p class="mb-0"><strong>Montant total :</strong> {{ document.totalTtc|number_format(0, ',', ' ') }} MRU</p>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <div class="mb-2">
+                        <small class="text-muted">Montant payé</small>
+                        <div class="h5 text-success mb-0">{{ document.totalPaid|number_format(0, ',', ' ') }} MRU</div>
+                    </div>
+                    <div>
+                        <small class="text-muted">Reste à payer</small>
+                        <div class="h5 text-warning mb-0">{{ document.remainingAmount|number_format(0, ',', ' ') }} MRU</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="card">
+        <div class="card-body">
+            {{ form_start(form) }}
+                <div class="row g-3">
+                    {% if not document %}
+                        <div class="col-12">
+                            {{ form_row(form.document, {
+                                'label': 'Facture',
+                                'attr': {'class': 'form-select'}
+                            }) }}
+                        </div>
+                    {% endif %}
+
+                    <div class="col-md-6">
+                        {{ form_row(form.datePaiement, {
+                            'label': 'Date de paiement',
+                            'attr': {'class': 'form-control'}
+                        }) }}
+                    </div>
+
+                    <div class="col-md-6">
+                        {{ form_row(form.montant, {
+                            'label': 'Montant (MRU)',
+                            'attr': {
+                                'class': 'form-control',
+                                'placeholder': document ? (document.remainingAmount|number_format(0, ',', ' ')) : '0'
+                            }
+                        }) }}
+                        {% if document %}
+                            <small class="form-text text-muted">
+                                Maximum : {{ document.remainingAmount|number_format(0, ',', ' ') }} MRU
+                            </small>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        {{ form_row(form.modePaiement, {
+                            'label': 'Mode de paiement',
+                            'attr': {'class': 'form-select'}
+                        }) }}
+                    </div>
+
+                    <div class="col-md-6">
+                        {{ form_row(form.statutPaiement, {
+                            'label': 'Statut du paiement',
+                            'attr': {'class': 'form-select'}
+                        }) }}
+                    </div>
+
+                    <div class="col-12">
+                        {{ form_row(form.reference, {
+                            'label': 'Référence (Numéro de chèque, virement, etc.)',
+                            'attr': {'class': 'form-control', 'placeholder': 'Ex: CHQ-12345, VIR-67890'}
+                        }) }}
+                    </div>
+
+                    <div class="col-12">
+                        {{ form_row(form.notes, {
+                            'label': 'Notes / Commentaires',
+                            'attr': {'class': 'form-control', 'rows': 4, 'placeholder': 'Informations complémentaires...'}
+                        }) }}
+                    </div>
+                </div>
+
+                <div class="mt-4 d-flex gap-2 justify-content-end">
+                    <a href="{{ document ? path('app_document_show', {id: document.id}) : path('app_document_index') }}"
+                       class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-save"></i> Enregistrer le paiement
+                    </button>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+
+    {% if document and document.payments|length > 0 %}
+        <div class="card mt-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0"><i class="bi bi-clock-history"></i> Historique des paiements</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Montant</th>
+                                <th>Mode</th>
+                                <th>Référence</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in document.payments %}
+                                <tr>
+                                    <td>{{ payment.datePaiement|date('d/m/Y') }}</td>
+                                    <td><strong>{{ payment.montant|number_format(0, ',', ' ') }} MRU</strong></td>
+                                    <td>
+                                        {% if payment.modePaiement == 'especes' %}
+                                            <i class="bi bi-cash"></i> Espèces
+                                        {% elseif payment.modePaiement == 'cheque' %}
+                                            <i class="bi bi-file-text"></i> Chèque
+                                        {% elseif payment.modePaiement == 'virement' %}
+                                            <i class="bi bi-bank"></i> Virement
+                                        {% elseif payment.modePaiement == 'carte' %}
+                                            <i class="bi bi-credit-card"></i> Carte
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ payment.reference|default('-') }}</td>
+                                    <td>
+                                        {% if payment.statutPaiement == 'recu' %}
+                                            <span class="badge bg-success">Reçu</span>
+                                        {% elseif payment.statutPaiement == 'en_attente' %}
+                                            <span class="badge bg-warning">En attente</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Annulé</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,356 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier le template - Ouma Traiteur{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        .variable-tag {
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .variable-tag:hover {
+            transform: scale(1.05);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .preview-panel {
+            position: sticky;
+            top: 20px;
+        }
+        .editor-toolbar {
+            background: #f8f9fa;
+            padding: 10px;
+            border: 1px solid #dee2e6;
+            border-bottom: none;
+            border-radius: 5px 5px 0 0;
+        }
+        .editor-toolbar button {
+            margin-right: 5px;
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0"><i class="bi bi-plus-circle"></i> Modifier le template d'email</h1>
+            <p class="text-muted">Modifier le modèle d'email personnalisable</p>
+        </div>
+        <a href="{{ path('app_email_template_index') }}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Retour à la liste
+        </a>
+    </div>
+
+    {{ form_start(form) }}
+
+    <div class="row">
+        {# Formulaire principal #}
+        <div class="col-lg-8">
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Informations générales</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form_row(form.name) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_row(form.code) }}
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form_row(form.category) }}
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch mt-4 pt-2">
+                                {{ form_widget(form.isActive) }}
+                                {{ form_label(form.isActive) }}
+                            </div>
+                        </div>
+                    </div>
+
+                    {{ form_row(form.description) }}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-envelope"></i> Contenu de l'email</h5>
+                </div>
+                <div class="card-body">
+                    {{ form_row(form.subject) }}
+
+                    <div class="mb-3">
+                        <label for="email_template_body" class="form-label required">Contenu HTML</label>
+
+                        {# Barre d'outils simplifiée #}
+                        <div class="editor-toolbar">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="insertTag('p')" title="Paragraphe">
+                                <i class="bi bi-paragraph"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="insertTag('strong')" title="Gras">
+                                <i class="bi bi-type-bold"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="insertTag('em')" title="Italique">
+                                <i class="bi bi-type-italic"></i>
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="insertTag('br')" title="Saut de ligne">
+                                <i class="bi bi-arrow-return-left"></i>
+                            </button>
+                            <span class="ms-3 text-muted small">
+                                <i class="bi bi-info-circle"></i> Utilisez les variables de la sidebar →
+                            </span>
+                        </div>
+
+                        {{ form_widget(form.body, {'attr': {'class': 'form-control', 'rows': 20, 'style': 'font-family: monospace; min-height: 400px;'}}) }}
+
+                        <small class="form-text text-muted">
+                            Vous pouvez utiliser du HTML. Cliquez sur les variables dans la sidebar pour les insérer.
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <button type="submit" class="btn btn-success btn-lg">
+                        <i class="bi bi-check-circle"></i> Enregistrer les modifications
+                    </button>
+                    <a href="{{ path('app_email_template_index') }}" class="btn btn-outline-secondary btn-lg">
+                        <i class="bi bi-x-circle"></i> Annuler
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        {# Sidebar - Variables disponibles #}
+        <div class="col-lg-4">
+            <div class="preview-panel">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-code-square"></i> Variables disponibles</h5>
+                    </div>
+                    <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                        <p class="small text-muted">
+                            <strong>Cliquez sur une variable</strong> pour l'insérer dans le sujet ou le contenu.
+                        </p>
+
+                        {# Documents #}
+                        <h6 class="mt-3"><i class="bi bi-file-earmark-text"></i> Documents</h6>
+                        <div class="d-flex flex-wrap gap-1 mb-3">
+                            <span class="badge bg-primary variable-tag" onclick="insertVariable('{{ "{{numero}}" }}')">
+                                {{ "{{numero}}" }}
+                            </span>
+                            <span class="badge bg-primary variable-tag" onclick="insertVariable('{{ "{{type}}" }}')">
+                                {{ "{{type}}" }}
+                            </span>
+                            <span class="badge bg-primary variable-tag" onclick="insertVariable('{{ "{{date}}" }}')">
+                                {{ "{{date}}" }}
+                            </span>
+                            <span class="badge bg-primary variable-tag" onclick="insertVariable('{{ "{{montant_ht}}" }}')">
+                                {{ "{{montant_ht}}" }}
+                            </span>
+                            <span class="badge bg-primary variable-tag" onclick="insertVariable('{{ "{{montant_ttc}}" }}')">
+                                {{ "{{montant_ttc}}" }}
+                            </span>
+                            <span class="badge bg-primary variable-tag" onclick="insertVariable('{{ "{{tva}}" }}')">
+                                {{ "{{tva}}" }}
+                            </span>
+                            <span class="badge bg-primary variable-tag" onclick="insertVariable('{{ "{{devise}}" }}')">
+                                {{ "{{devise}}" }}
+                            </span>
+                            <span class="badge bg-primary variable-tag" onclick="insertVariable('{{ "{{statut}}" }}')">
+                                {{ "{{statut}}" }}
+                            </span>
+                        </div>
+
+                        {# Clients #}
+                        <h6 class="mt-3"><i class="bi bi-person"></i> Clients</h6>
+                        <div class="d-flex flex-wrap gap-1 mb-3">
+                            <span class="badge bg-info variable-tag" onclick="insertVariable('{{ "{{nom_client}}" }}')">
+                                {{ "{{nom_client}}" }}
+                            </span>
+                            <span class="badge bg-info variable-tag" onclick="insertVariable('{{ "{{email_client}}" }}')">
+                                {{ "{{email_client}}" }}
+                            </span>
+                            <span class="badge bg-info variable-tag" onclick="insertVariable('{{ "{{telephone_client}}" }}')">
+                                {{ "{{telephone_client}}" }}
+                            </span>
+                            <span class="badge bg-info variable-tag" onclick="insertVariable('{{ "{{adresse_client}}" }}')">
+                                {{ "{{adresse_client}}" }}
+                            </span>
+                        </div>
+
+                        {# Entreprise #}
+                        <h6 class="mt-3"><i class="bi bi-building"></i> Entreprise</h6>
+                        <div class="d-flex flex-wrap gap-1 mb-3">
+                            <span class="badge bg-success variable-tag" onclick="insertVariable('{{ "{{nom_entreprise}}" }}')">
+                                {{ "{{nom_entreprise}}" }}
+                            </span>
+                            <span class="badge bg-success variable-tag" onclick="insertVariable('{{ "{{email_entreprise}}" }}')">
+                                {{ "{{email_entreprise}}" }}
+                            </span>
+                            <span class="badge bg-success variable-tag" onclick="insertVariable('{{ "{{telephone_entreprise}}" }}')">
+                                {{ "{{telephone_entreprise}}" }}
+                            </span>
+                        </div>
+
+                        {# Autres #}
+                        <h6 class="mt-3"><i class="bi bi-three-dots"></i> Autres</h6>
+                        <div class="d-flex flex-wrap gap-1 mb-3">
+                            <span class="badge bg-warning variable-tag" onclick="insertVariable('{{ "{{message_personnalise}}" }}')">
+                                {{ "{{message_personnalise}}" }}
+                            </span>
+                            <span class="badge bg-warning variable-tag" onclick="insertVariable('{{ "{{date_envoi}}" }}')">
+                                {{ "{{date_envoi}}" }}
+                            </span>
+                            <span class="badge bg-warning variable-tag" onclick="insertVariable('{{ "{{expediteur}}" }}')">
+                                {{ "{{expediteur}}" }}
+                            </span>
+                        </div>
+
+                        <div class="alert alert-info mt-4">
+                            <small>
+                                <i class="bi bi-info-circle"></i>
+                                <strong>Astuce :</strong> Les variables seront automatiquement remplacées
+                                par les vraies valeurs lors de l'envoi de l'email.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="bi bi-lightbulb"></i> Conseils</h6>
+                    </div>
+                    <div class="card-body">
+                        <ul class="small mb-0">
+                            <li>Utilisez un sujet clair et concis</li>
+                            <li>Personnalisez avec le nom du client</li>
+                            <li>Restez professionnel et courtois</li>
+                            <li>Testez votre template avant utilisation</li>
+                            <li>Évitez les scripts et le code dangereux</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="card mt-3">
+                    <div class="card-header bg-secondary text-white">
+                        <h6 class="mb-0"><i class="bi bi-code-slash"></i> Exemple HTML</h6>
+                    </div>
+                    <div class="card-body">
+                        <pre class="bg-light p-2 rounded small mb-0" style="font-size: 11px;"><code>&lt;p&gt;Bonjour {{ "{{nom_client}}" }},&lt;/p&gt;
+&lt;p&gt;Votre devis n°{{ "{{numero}}" }}
+d'un montant de {{ "{{montant_ttc}}" }} {{ "{{devise}}" }}.&lt;/p&gt;
+&lt;p&gt;{{ "{{message_personnalise}}" }}&lt;/p&gt;
+&lt;p&gt;Cordialement,&lt;br&gt;
+{{ "{{nom_entreprise}}" }}&lt;/p&gt;</code></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {{ form_end(form) }}
+</div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+
+    <script>
+        // Fonction pour insérer une variable
+        function insertVariable(variable) {
+            // Récupérer les éléments (Symfony génère email_template_body et email_template_subject)
+            const bodyEditor = document.getElementById('email_template_body');
+            const subjectInput = document.getElementById('email_template_subject');
+
+            if (!bodyEditor || !subjectInput) {
+                console.error('Éléments non trouvés');
+                alert('Erreur : Impossible de trouver les champs du formulaire');
+                return;
+            }
+
+            // Déterminer quel champ est actif
+            const activeElement = document.activeElement;
+            let targetField = bodyEditor;
+
+            if (activeElement === subjectInput) {
+                targetField = subjectInput;
+            }
+
+            // Insérer la variable
+            const cursorPos = targetField.selectionStart || 0;
+            const textBefore = targetField.value.substring(0, cursorPos);
+            const textAfter = targetField.value.substring(cursorPos);
+
+            targetField.value = textBefore + variable + textAfter;
+
+            // Repositionner le curseur
+            const newCursorPos = cursorPos + variable.length;
+            targetField.selectionStart = targetField.selectionEnd = newCursorPos;
+            targetField.focus();
+
+            // Feedback visuel
+            targetField.style.backgroundColor = '#e8f5e9';
+            setTimeout(() => {
+                targetField.style.backgroundColor = '';
+            }, 200);
+        }
+
+        // Fonction pour insérer des balises HTML
+        function insertTag(tag) {
+            const bodyEditor = document.getElementById('email_template_body');
+
+            if (!bodyEditor) {
+                console.error('Élément body non trouvé');
+                alert('Erreur : Impossible de trouver le champ de contenu');
+                return;
+            }
+
+            const cursorPos = bodyEditor.selectionStart || 0;
+            const selectedText = bodyEditor.value.substring(bodyEditor.selectionStart, bodyEditor.selectionEnd);
+
+            let insertText = '';
+            if (tag === 'br') {
+                insertText = '<br>\n';
+            } else {
+                insertText = '<' + tag + '>' + (selectedText || 'Texte') + '</' + tag + '>';
+            }
+
+            const textBefore = bodyEditor.value.substring(0, cursorPos);
+            const textAfter = bodyEditor.value.substring(bodyEditor.selectionEnd);
+
+            bodyEditor.value = textBefore + insertText + textAfter;
+            bodyEditor.focus();
+
+            // Feedback visuel
+            bodyEditor.style.backgroundColor = '#e3f2fd';
+            setTimeout(() => {
+                bodyEditor.style.backgroundColor = '';
+            }, 200);
+        }
+
+        // Auto-générer le code depuis le nom
+        document.querySelector('#email_template_name').addEventListener('input', function(e) {
+            const codeField = document.querySelector('#email_template_code');
+            if (!codeField.value || codeField.dataset.auto !== 'false') {
+                const code = e.target.value
+                    .toLowerCase()
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+                    .replace(/[^a-z0-9]+/g, '_')
+                    .replace(/^_+|_+$/g, '');
+                codeField.value = code;
+            }
+        });
+
+        // Marquer le code comme modifié manuellement
+        document.querySelector('#email_template_code').addEventListener('input', function() {
+            this.dataset.auto = 'false';
+        });
+    </script>
+{% endblock %}

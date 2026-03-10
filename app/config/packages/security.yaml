@@ -1,0 +1,105 @@
+security:
+    # Encodage des mots de passe
+    password_hashers:
+        Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
+        App\Entity\User:
+            algorithm: auto
+
+    # Fournisseur d'utilisateurs
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+
+    # Configuration des pare-feu
+    firewalls:
+        api_login:
+            pattern: ^/api/login
+            stateless: true
+            json_login:
+                check_path: /api/login
+                username_path: email
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+
+        api:
+            pattern: ^/api
+            stateless: true
+            jwt: ~
+
+        dev:
+            pattern: ^/(_(profiler|wdt)|css|images|js)/
+            security: false
+
+        main:
+            lazy: true
+            provider: app_user_provider
+
+            # Formulaire de connexion
+            form_login:
+                login_path: app_login
+                check_path: app_login
+                default_target_path: app_dashboard
+                enable_csrf: true
+                username_parameter: email
+                password_parameter: password
+
+            # Déconnexion
+            logout:
+                path: app_logout
+                target: app_login
+
+            # Remember me
+            remember_me:
+                secret: '%kernel.secret%'
+                lifetime: 604800 # 1 semaine en secondes
+                path: /
+                always_remember_me: false
+
+            # Configuration d'entrée pour les utilisateurs non authentifiés
+            entry_point: form_login
+
+
+
+    # Hiérarchie des rôles
+    role_hierarchy:
+        ROLE_COMPTABLE: ROLE_USER
+        ROLE_ADMIN: [ROLE_COMPTABLE, ROLE_USER]
+
+    # Contrôle d'accès
+    access_control:
+        # Routes API
+        - { path: ^/api/login, roles: PUBLIC_ACCESS }
+        - { path: ^/api/docs, roles: PUBLIC_ACCESS }
+        - { path: ^/api/contexts, roles: PUBLIC_ACCESS }
+        - { path: ^/api$, roles: PUBLIC_ACCESS }
+        - { path: ^/api, roles: ROLE_USER }
+
+        # Routes publiques
+        - { path: ^/login$, roles: PUBLIC_ACCESS }
+        - { path: ^/register, roles: PUBLIC_ACCESS }
+        - { path: ^/forgot-password, roles: PUBLIC_ACCESS }
+        - { path: ^/reset-password, roles: PUBLIC_ACCESS }
+
+        # Routes admin uniquement
+        - { path: ^/admin, roles: ROLE_ADMIN }
+        - { path: ^/user, roles: ROLE_ADMIN }
+        - { path: ^/company/edit, roles: ROLE_ADMIN }
+
+        # Routes comptable + admin
+        - { path: ^/reports, roles: ROLE_COMPTABLE }
+        - { path: ^/payment, roles: ROLE_COMPTABLE }
+
+        # Toutes les autres routes nécessitent au minimum ROLE_USER
+        - { path: ^/, roles: ROLE_USER }
+
+when@test:
+    security:
+        password_hashers:
+            Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface:
+                algorithm: auto
+                cost: 4 # Plus rapide pour les tests
+                time_cost: 3
+                memory_cost: 10

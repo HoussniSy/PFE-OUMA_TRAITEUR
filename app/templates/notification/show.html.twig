@@ -1,0 +1,245 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Notification #{{ notification.id }} - Ouma Traiteur{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    {# Breadcrumb #}
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Accueil</a></li>
+            <li class="breadcrumb-item"><a href="{{ path('app_notification_index') }}">Notifications</a></li>
+            <li class="breadcrumb-item active">Notification #{{ notification.id }}</li>
+        </ol>
+    </nav>
+
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>
+            <i class="bi bi-bell"></i> Notification #{{ notification.id }}
+        </h1>
+        <div>
+            <a href="{{ path('app_notification_index') }}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Retour
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        {# Colonne principale #}
+        <div class="col-lg-8">
+            {# Informations générales #}
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i> Informations générales
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Type :</strong><br>
+                            {% if notification.type == 'reminder_before_due' %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-clock"></i> Rappel avant échéance
+                                </span>
+                            {% elseif notification.type == 'reminder_overdue' %}
+                                <span class="badge bg-danger">
+                                    <i class="bi bi-exclamation-triangle"></i> Facture impayée
+                                    {% if notification.reminderNumber %}(Rappel #{{ notification.reminderNumber }}){% endif %}
+                                </span>
+                            {% else %}
+                                <span class="badge bg-info">
+                                    <i class="bi bi-hand-thumbs-up"></i> Rappel manuel
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Statut :</strong><br>
+                            <span class="badge {{ notification.statusBadgeClass }}">
+                                {{ notification.statusLabel }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Planifiée pour :</strong><br>
+                            {{ notification.scheduledAt|date('d/m/Y à H:i') }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Envoyée le :</strong><br>
+                            {% if notification.sentAt %}
+                                <span class="text-success">{{ notification.sentAt|date('d/m/Y à H:i') }}</span>
+                            {% else %}
+                                <span class="text-muted">Pas encore envoyée</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <strong>Créée le :</strong><br>
+                            {{ notification.createdAt|date('d/m/Y à H:i') }}
+                        </div>
+                    </div>
+
+                    {% if notification.errorMessage %}
+                    <div class="alert alert-danger mt-3">
+                        <strong><i class="bi bi-exclamation-triangle"></i> Erreur :</strong><br>
+                        {{ notification.errorMessage }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Destinataire #}
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-envelope"></i> Destinataire
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Nom :</strong><br>
+                        {{ notification.recipientName }}
+                    </div>
+                    <div class="mb-3">
+                        <strong>Email :</strong><br>
+                        <a href="mailto:{{ notification.recipientEmail }}">{{ notification.recipientEmail }}</a>
+                    </div>
+                </div>
+            </div>
+
+            {# Message personnalisé #}
+            {% if notification.message %}
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-chat-text"></i> Message personnalisé
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="bg-light p-3 rounded">
+                        {{ notification.message|nl2br }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        {# Colonne latérale #}
+        <div class="col-lg-4">
+            {# Document associé #}
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-file-text"></i> Document associé
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Type :</strong><br>
+                        <span class="badge bg-success">{{ notification.document.typeLabel }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Numéro :</strong><br>
+                        <a href="{{ path('app_document_show', {id: notification.document.id}) }}" class="text-decoration-none">
+                            <strong>{{ notification.document.number }}</strong>
+                        </a>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Date :</strong><br>
+                        {{ notification.document.date|date('d/m/Y') }}
+                    </div>
+                    {% if notification.document.dueDate %}
+                    <div class="mb-3">
+                        <strong>Échéance :</strong><br>
+                        {{ notification.document.dueDate|date('d/m/Y') }}
+                        {% if notification.document.isOverdue %}
+                            <br><span class="badge bg-danger">Retard : {{ notification.document.daysOverdue }} jour(s)</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <strong>Montant TTC :</strong><br>
+                        <span class="fs-5 text-success fw-bold">
+                            {{ notification.document.formattedTotalTtc }} {{ notification.document.currency }}
+                        </span>
+                    </div>
+                    <div class="mb-3">
+                        <strong>Statut :</strong><br>
+                        <span class="badge {{ notification.document.statusBadgeClass }}">
+                            {{ notification.document.statusLabel }}
+                        </span>
+                    </div>
+                    <a href="{{ path('app_document_show', {id: notification.document.id}) }}" class="btn btn-primary w-100">
+                        <i class="bi bi-eye"></i> Voir le document
+                    </a>
+                </div>
+            </div>
+
+            {# Client #}
+            <div class="card mb-4">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-person"></i> Client
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Nom :</strong><br>
+                        <a href="{{ path('app_client_show', {id: notification.document.client.id}) }}">
+                            {{ notification.document.client.name }}
+                        </a>
+                    </div>
+                    {% if notification.document.client.phone %}
+                    <div class="mb-3">
+                        <strong>Téléphone :</strong><br>
+                        <a href="tel:{{ notification.document.client.phone }}">
+                            {{ notification.document.client.phone }}
+                        </a>
+                    </div>
+                    {% endif %}
+                    {% if notification.document.client.email %}
+                    <div class="mb-3">
+                        <strong>Email :</strong><br>
+                        <a href="mailto:{{ notification.document.client.email }}">
+                            {{ notification.document.client.email }}
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Actions #}
+            <div class="card">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-lightning"></i> Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if notification.status == 'failed' %}
+                    <form method="post" action="{{ path('app_notification_retry', {id: notification.id}) }}" class="mb-2">
+                        <input type="hidden" name="_token" value="{{ csrf_token('retry' ~ notification.id) }}">
+                        <button type="submit" class="btn btn-warning w-100">
+                            <i class="bi bi-arrow-clockwise"></i> Réessayer
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_ADMIN') %}
+                    <form method="post" action="{{ path('app_notification_delete', {id: notification.id}) }}" onsubmit="return confirm('Supprimer cette notification ?')">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ notification.id) }}">
+                        <button type="submit" class="btn btn-danger w-100">
+                            <i class="bi bi-trash"></i> Supprimer
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

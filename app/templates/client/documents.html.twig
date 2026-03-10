@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Documents de {{ client.name }}{% endblock %}
+
+{% block body %}
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-12">
+                <h1>Documents de {{ client.name }}</h1>
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between mb-3">
+                            <h5>Liste des documents</h5>
+                            <div>
+                                <a href="{{ path('app_client_show', {'id': client.id}) }}" class="btn btn-secondary">
+                                    <i class="bi bi-arrow-left"></i> Retour
+                                </a>
+                                <a href="{{ path('app_document_new', {'type': 'quote'}) }}?client={{ client.id }}" class="btn btn-primary">
+                                    <i class="bi bi-file-earmark-plus"></i> Nouveau Devis
+                                </a>
+                                <a href="{{ path('app_document_new', {'type': 'invoice'}) }}?client={{ client.id }}" class="btn btn-success">
+                                    <i class="bi bi-file-earmark-plus"></i> Nouvelle Facture
+                                </a>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Type</th>
+                                        <th>Numéro</th>
+                                        <th>Date</th>
+                                        <th>Montant TTC</th>
+                                        <th>Statut</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for document in documents %}
+                                        <tr>
+                                            <td>
+                                                <span class="badge {% if document.type == 'quote' %}bg-primary{% else %}bg-success{% endif %}">
+                                                    {{ document.type == 'quote' ? 'Devis' : 'Facture' }}
+                                                </span>
+                                            </td>
+                                            <td>{{ document.number }}</td>
+                                            <td>{{ document.date|date('d/m/Y') }}</td>
+                                            <td>{{ document.totalTtc|number_format(0, ',', ' ') }} MRU</td>
+                                            <td>
+                                                <span class="badge {{ document.getStatusBadgeClass() }}">
+                                                    {{ document.getStatusLabel() }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <a href="{{ path('app_document_show', {'id': document.id}) }}" class="btn btn-sm btn-info">
+                                                    <i class="bi bi-eye"></i>
+                                                </a>
+                                            </td>
+                                        </tr>
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="6" class="text-center">Aucun document trouvé</td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

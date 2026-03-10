@@ -1,0 +1,349 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Configuration Entreprise - Ouma Traiteur{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1><i class="bi bi-building"></i> Configuration de l'entreprise</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Accueil</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_company_show') }}">Entreprise</a></li>
+                    <li class="breadcrumb-item active">Configuration</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    {{ form_start(form, {'attr': {'enctype': 'multipart/form-data'}}) }}
+                        {# Informations générales #}
+                        <h5 class="mb-3">
+                            <i class="bi bi-info-circle"></i> Informations générales
+                        </h5>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-12">
+                                {{ form_row(form.name, {
+                                    'label': 'Nom de l\'entreprise (Français) *',
+                                    'attr': {'class': 'form-control', 'placeholder': 'Ex: Ouma Traiteur'}
+                                }) }}
+                            </div>
+
+                            <div class="col-12">
+                                {{ form_row(form.nameArabic, {
+                                    'label': 'Nom de l\'entreprise (Arabe)',
+                                    'attr': {'class': 'form-control', 'placeholder': 'اسم الشركة', 'dir': 'rtl'}
+                                }) }}
+                                <small class="text-muted">Le nom en arabe apparaîtra sur les documents PDF</small>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                {{ form_row(form.registrationNumber, {
+                                    'label': 'Numéro d\'enregistrement *',
+                                    'attr': {'class': 'form-control', 'placeholder': '120001/999'}
+                                }) }}
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                {{ form_row(form.nif, {
+                                    'label': 'NIF *',
+                                    'attr': {'class': 'form-control', 'placeholder': '01326610'}
+                                }) }}
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                {{ form_row(form.phone, {
+                                    'label': 'Téléphone *',
+                                    'attr': {'class': 'form-control', 'placeholder': '46246698'}
+                                }) }}
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                {{ form_row(form.address, {
+                                    'label': 'Adresse',
+                                    'attr': {'class': 'form-control', 'placeholder': 'Nouakchott, Mauritanie'}
+                                }) }}
+                            </div>
+                        </div>
+
+                        {# Logo principal #}
+                        <h5 class="mb-3">
+                            <i class="bi bi-image"></i> Logo principal
+                        </h5>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-12">
+                                {% if company.logo %}
+                                    <div class="mb-3">
+                                        <label class="form-label">Logo actuel :</label><br>
+                                        <img src="{{ asset('uploads/logos/' ~ company.logo) }}"
+                                             alt="Logo"
+                                             class="img-thumbnail"
+                                             style="max-height: 150px;">
+                                    </div>
+                                {% endif %}
+
+                                {{ form_row(form.logoFile, {
+                                    'label': company.logo ? 'Changer le logo principal' : 'Télécharger un logo principal',
+                                    'attr': {'class': 'form-control', 'accept': 'image/png,image/jpeg'}
+                                }) }}
+                                <small class="text-muted">
+                                    Format accepté : PNG ou JPG, taille max : 2 MB. Utilisé par défaut sur tous les documents.
+                                </small>
+                            </div>
+                        </div>
+
+                        {# Thème de couleurs (Feature 27) #}
+                        <h5 class="mb-3">
+                            <i class="bi bi-palette"></i> Thème de couleurs
+                        </h5>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-12 col-md-6">
+                                {{ form_row(form.colorTheme, {
+                                    'attr': {'class': 'form-select', 'id': 'colorThemeSelect'}
+                                }) }}
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="d-flex align-items-end gap-3">
+                                    <div>
+                                        {{ form_row(form.primaryColor, {
+                                            'attr': {'class': 'form-control form-control-color', 'id': 'primaryColorPicker', 'style': 'width: 80px; height: 40px;'}
+                                        }) }}
+                                    </div>
+                                    <div id="colorPreview" class="rounded p-2 px-3 text-white fw-bold" style="background-color: {{ company.primaryColor ?? '#00a651' }}; min-width: 120px; text-align: center;">
+                                        Aperçu
+                                    </div>
+                                </div>
+                            </div>
+
+                            {# Aperçu des thèmes prédéfinis #}
+                            <div class="col-12">
+                                <label class="form-label small text-muted">Aperçu rapide des thèmes :</label>
+                                <div class="d-flex gap-2 flex-wrap">
+                                    <button type="button" class="btn btn-sm theme-preview-btn" data-theme="green" data-color="#00a651" style="background-color: #00a651; color: white; border: 2px solid transparent;">
+                                        🟢 Vert
+                                    </button>
+                                    <button type="button" class="btn btn-sm theme-preview-btn" data-theme="ocean" data-color="#0077b6" style="background-color: #0077b6; color: white; border: 2px solid transparent;">
+                                        🔵 Océan
+                                    </button>
+                                    <button type="button" class="btn btn-sm theme-preview-btn" data-theme="sunset" data-color="#e07b39" style="background-color: #e07b39; color: white; border: 2px solid transparent;">
+                                        🟠 Soleil
+                                    </button>
+                                    <button type="button" class="btn btn-sm theme-preview-btn" data-theme="purple" data-color="#7c3aed" style="background-color: #7c3aed; color: white; border: 2px solid transparent;">
+                                        🟣 Violet
+                                    </button>
+                                    <button type="button" class="btn btn-sm theme-preview-btn" data-theme="red" data-color="#dc2626" style="background-color: #dc2626; color: white; border: 2px solid transparent;">
+                                        🔴 Rouge
+                                    </button>
+                                    <button type="button" class="btn btn-sm theme-preview-btn" data-theme="royal" data-color="#1d4ed8" style="background-color: #1d4ed8; color: white; border: 2px solid transparent;">
+                                        🔵 Royal
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Logos par document (Feature 28) #}
+                        <h5 class="mb-3">
+                            <i class="bi bi-file-earmark-image"></i> Logos par type de document
+                        </h5>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-12 col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6><i class="bi bi-file-earmark-text text-info"></i> Logo Devis</h6>
+                                        {% if company.logoQuote %}
+                                            <div class="mb-2">
+                                                <img src="{{ asset('uploads/logos/' ~ company.logoQuote) }}"
+                                                     alt="Logo Devis"
+                                                     class="img-thumbnail"
+                                                     style="max-height: 80px;">
+                                            </div>
+                                        {% endif %}
+                                        {{ form_row(form.logoQuoteFile, {
+                                            'label': company.logoQuote ? 'Changer' : 'Télécharger',
+                                            'attr': {'class': 'form-control form-control-sm', 'accept': 'image/png,image/jpeg'}
+                                        }) }}
+                                        <small class="text-muted">Si vide, le logo principal sera utilisé</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h6><i class="bi bi-receipt text-success"></i> Logo Factures</h6>
+                                        {% if company.logoInvoice %}
+                                            <div class="mb-2">
+                                                <img src="{{ asset('uploads/logos/' ~ company.logoInvoice) }}"
+                                                     alt="Logo Factures"
+                                                     class="img-thumbnail"
+                                                     style="max-height: 80px;">
+                                            </div>
+                                        {% endif %}
+                                        {{ form_row(form.logoInvoiceFile, {
+                                            'label': company.logoInvoice ? 'Changer' : 'Télécharger',
+                                            'attr': {'class': 'form-control form-control-sm', 'accept': 'image/png,image/jpeg'}
+                                        }) }}
+                                        <small class="text-muted">Si vide, le logo principal sera utilisé</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-12">
+                                {{ form_row(form.quoteWatermark, {
+                                    'attr': {'class': 'form-check-input'}
+                                }) }}
+                            </div>
+                        </div>
+
+                        {# Informations bancaires #}
+                        <h5 class="mb-3">
+                            <i class="bi bi-bank"></i> Informations bancaires
+                        </h5>
+
+                        <div class="row g-3 mb-4">
+                            <div class="col-12 col-md-6">
+                                {{ form_row(form.bankName, {
+                                    'label': 'Nom de la banque *',
+                                    'attr': {'class': 'form-control', 'placeholder': 'BMCI'}
+                                }) }}
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                {{ form_row(form.bankAccount, {
+                                    'label': 'Numéro de compte *',
+                                    'attr': {'class': 'form-control', 'placeholder': '0426763050 - 14'}
+                                }) }}
+                            </div>
+                        </div>
+
+                        {# Boutons #}
+                        <div class="d-flex gap-2 justify-content-end">
+                            <a href="{{ path('app_company_show') }}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-ouma-primary">
+                                <i class="bi bi-save"></i> Enregistrer
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+
+        {# Aide #}
+        <div class="col-12 col-lg-4 mt-3 mt-lg-0">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-question-circle"></i> Aide
+                    </h5>
+                    <p class="small">
+                        Ces informations apparaîtront sur tous vos documents (devis et factures).
+                    </p>
+
+                    <hr>
+
+                    <h6><i class="bi bi-palette text-primary"></i> Thème de couleurs</h6>
+                    <p class="small text-muted">
+                        Choisissez un thème prédéfini ou une couleur personnalisée. La couleur sera appliquée à l'interface et aux documents PDF.
+                    </p>
+
+                    <h6><i class="bi bi-file-earmark-image text-info"></i> Logos par document</h6>
+                    <p class="small text-muted">
+                        Vous pouvez utiliser un logo différent pour les devis et les factures. Si non défini, le logo principal sera utilisé.
+                    </p>
+
+                    <h6><i class="bi bi-droplet text-warning"></i> Filigrane (Watermark)</h6>
+                    <p class="small text-muted">
+                        Le filigrane "DEVIS" apparaît en fond semi-transparent sur les devis PDF pour les distinguer des factures.
+                    </p>
+
+                    <h6><i class="bi bi-check-circle text-success"></i> Informations bancaires</h6>
+                    <p class="small text-muted">
+                        Ces informations seront affichées au bas de vos factures pour faciliter les paiements.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# JavaScript pour le sélecteur de thème interactif #}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const themeSelect = document.getElementById('colorThemeSelect');
+    const colorPicker = document.getElementById('primaryColorPicker');
+    const colorPreview = document.getElementById('colorPreview');
+    const themeButtons = document.querySelectorAll('.theme-preview-btn');
+
+    const themeColors = {
+        'green': '#00a651',
+        'ocean': '#0077b6',
+        'sunset': '#e07b39',
+        'purple': '#7c3aed',
+        'red': '#dc2626',
+        'royal': '#1d4ed8'
+    };
+
+    // Mettre à jour l'aperçu quand le sélecteur de couleur change
+    if (colorPicker) {
+        colorPicker.addEventListener('input', function() {
+            colorPreview.style.backgroundColor = this.value;
+            // Quand on choisit une couleur manuellement, remettre le thème à "Personnalisé"
+            if (themeSelect) {
+                themeSelect.value = '';
+            }
+            highlightActiveTheme('');
+        });
+    }
+
+    // Mettre à jour la couleur quand le thème change
+    if (themeSelect) {
+        themeSelect.addEventListener('change', function() {
+            const theme = this.value;
+            if (theme && themeColors[theme]) {
+                colorPicker.value = themeColors[theme];
+                colorPreview.style.backgroundColor = themeColors[theme];
+                highlightActiveTheme(theme);
+            }
+        });
+    }
+
+    // Boutons de thème rapide
+    themeButtons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            const theme = this.dataset.theme;
+            const color = this.dataset.color;
+            if (colorPicker) colorPicker.value = color;
+            if (colorPreview) colorPreview.style.backgroundColor = color;
+            if (themeSelect) themeSelect.value = theme;
+            highlightActiveTheme(theme);
+        });
+    });
+
+    function highlightActiveTheme(activeTheme) {
+        themeButtons.forEach(function(btn) {
+            if (btn.dataset.theme === activeTheme) {
+                btn.style.border = '2px solid #333';
+                btn.style.transform = 'scale(1.1)';
+            } else {
+                btn.style.border = '2px solid transparent';
+                btn.style.transform = 'scale(1)';
+            }
+        });
+    }
+
+    // Initialiser l'état actif
+    if (themeSelect && themeSelect.value) {
+        highlightActiveTheme(themeSelect.value);
+    }
+});
+</script>
+{% endblock %}

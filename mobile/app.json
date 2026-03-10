@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "Ouma Traiteur",
+    "slug": "ouma-traiteur-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "splash": {
+      "backgroundColor": "#00a651",
+      "resizeMode": "contain"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.oumatraiteur.mobile"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#00a651"
+      },
+      "package": "com.oumatraiteur.mobile"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-font",
+      "expo-asset"
+    ]
+  }
+}

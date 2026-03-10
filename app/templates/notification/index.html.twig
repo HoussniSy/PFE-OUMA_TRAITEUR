@@ -1,0 +1,244 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Notifications - Ouma Traiteur{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="mb-2">
+                <i class="bi bi-bell"></i> Notifications
+            </h1>
+            <p class="text-muted">Gestion des rappels de paiement automatiques</p>
+        </div>
+        {% if is_granted('ROLE_ADMIN') %}
+        <div class="btn-group">
+            <form method="post" action="{{ path('app_notification_schedule') }}" class="d-inline">
+                <input type="hidden" name="_token" value="{{ csrf_token('schedule-notifications') }}">
+                <button type="submit" class="btn btn-primary" title="Planifier les notifications automatiques">
+                    <i class="bi bi-calendar-plus"></i> Planifier
+                </button>
+            </form>
+            <form method="post" action="{{ path('app_notification_send_pending') }}" class="d-inline">
+                <input type="hidden" name="_token" value="{{ csrf_token('send-notifications') }}">
+                <button type="submit" class="btn btn-success" title="Envoyer les notifications en attente">
+                    <i class="bi bi-send"></i> Envoyer en attente
+                </button>
+            </form>
+            <form method="post" action="{{ path('app_notification_clean') }}" class="d-inline">
+                <input type="hidden" name="_token" value="{{ csrf_token('clean-notifications') }}">
+                <button type="submit" class="btn btn-warning" onclick="return confirm('Supprimer les notifications de plus de 6 mois ?')" title="Nettoyer les anciennes notifications">
+                    <i class="bi bi-trash"></i> Nettoyer
+                </button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    {# Statistiques #}
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">En attente</h6>
+                            <h3 class="mb-0">{{ stats.pending }}</h3>
+                        </div>
+                        <div class="text-warning" style="font-size: 2rem;">
+                            <i class="bi bi-clock-history"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Prêtes à envoyer</h6>
+                            <h3 class="mb-0">{{ stats.ready_to_send }}</h3>
+                        </div>
+                        <div class="text-info" style="font-size: 2rem;">
+                            <i class="bi bi-send-check"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Envoyées ce mois</h6>
+                            <h3 class="mb-0">{{ stats.sent_this_month }}</h3>
+                        </div>
+                        <div class="text-success" style="font-size: 2rem;">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-danger">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">En échec</h6>
+                            <h3 class="mb-0">{{ stats.failed }}</h3>
+                        </div>
+                        <div class="text-danger" style="font-size: 2rem;">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Filtres #}
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Statut</label>
+                    <select name="status" class="form-select">
+                        <option value="all" {% if currentStatus == 'all' %}selected{% endif %}>Tous</option>
+                        <option value="pending" {% if currentStatus == 'pending' %}selected{% endif %}>En attente</option>
+                        <option value="sent" {% if currentStatus == 'sent' %}selected{% endif %}>Envoyé</option>
+                        <option value="failed" {% if currentStatus == 'failed' %}selected{% endif %}>Échec</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Type</label>
+                    <select name="type" class="form-select">
+                        <option value="all" {% if currentType == 'all' %}selected{% endif %}>Tous</option>
+                        <option value="reminder_before_due" {% if currentType == 'reminder_before_due' %}selected{% endif %}>Avant échéance</option>
+                        <option value="reminder_overdue" {% if currentType == 'reminder_overdue' %}selected{% endif %}>Facture impayée</option>
+                        <option value="reminder_manual" {% if currentType == 'reminder_manual' %}selected{% endif %}>Manuel</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Recherche</label>
+                    <input type="text" name="search" class="form-control" placeholder="N° facture, client, email..." value="{{ search }}">
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Filtrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# Liste des notifications #}
+    <div class="card">
+        <div class="card-header bg-white">
+            <h5 class="mb-0">
+                <i class="bi bi-list-ul"></i>
+                Liste des notifications ({{ notifications|length }})
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            {% if notifications is empty %}
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+                    <p class="text-muted mt-3">Aucune notification trouvée</p>
+                </div>
+            {% else %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Type</th>
+                                <th>Facture</th>
+                                <th>Client</th>
+                                <th>Email</th>
+                                <th>Planifiée</th>
+                                <th>Envoyée</th>
+                                <th>Statut</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for notification in notifications %}
+                            <tr>
+                                <td>
+                                    {% if notification.type == 'reminder_before_due' %}
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="bi bi-clock"></i> Avant échéance
+                                        </span>
+                                    {% elseif notification.type == 'reminder_overdue' %}
+                                        <span class="badge bg-danger">
+                                            <i class="bi bi-exclamation-triangle"></i> Impayée
+                                            {% if notification.reminderNumber %}#{{ notification.reminderNumber }}{% endif %}
+                                        </span>
+                                    {% else %}
+                                        <span class="badge bg-info">
+                                            <i class="bi bi-hand-thumbs-up"></i> Manuel
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <a href="{{ path('app_document_show', {id: notification.document.id}) }}" class="text-decoration-none">
+                                        <strong>{{ notification.document.number }}</strong>
+                                    </a>
+                                    <br>
+                                    <small class="text-muted">{{ notification.document.formattedTotalTtc }} {{ notification.document.currency }}</small>
+                                </td>
+                                <td>{{ notification.document.client.name }}</td>
+                                <td>
+                                    <small>{{ notification.recipientEmail }}</small>
+                                </td>
+                                <td>
+                                    <small>{{ notification.scheduledAt|date('d/m/Y H:i') }}</small>
+                                </td>
+                                <td>
+                                    {% if notification.sentAt %}
+                                        <small class="text-success">{{ notification.sentAt|date('d/m/Y H:i') }}</small>
+                                    {% else %}
+                                        <small class="text-muted">-</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge {{ notification.statusBadgeClass }}">
+                                        {{ notification.statusLabel }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        <a href="{{ path('app_notification_show', {id: notification.id}) }}" class="btn btn-outline-primary" title="Détails">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        {% if notification.status == 'failed' %}
+                                        <form method="post" action="{{ path('app_notification_retry', {id: notification.id}) }}" class="d-inline">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('retry' ~ notification.id) }}">
+                                            <button type="submit" class="btn btn-outline-warning" title="Réessayer">
+                                                <i class="bi bi-arrow-clockwise"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                        {% if is_granted('ROLE_ADMIN') %}
+                                        <form method="post" action="{{ path('app_notification_delete', {id: notification.id}) }}" class="d-inline" onsubmit="return confirm('Supprimer cette notification ?')">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ notification.id) }}">
+                                            <button type="submit" class="btn btn-outline-danger" title="Supprimer">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

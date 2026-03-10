@@ -1,0 +1,73 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouvel utilisateur{% endblock %}
+
+{% block body %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h4 class="mb-0"><i class="bi bi-person-plus-fill"></i> Créer un nouvel utilisateur</h4>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_row(form.nom) }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form_row(form.prenom) }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_row(form.email) }}
+                        <small class="text-muted">
+                            <i class="bi bi-info-circle"></i> Un mot de passe temporaire sera généré et envoyé à cette adresse.
+                        </small>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            {{ form_row(form.phone) }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            {{ form_row(form.poste) }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_row(form.roles) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_row(form.isActive) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_row(form.avatarFile) }}
+                    </div>
+
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <strong>Important :</strong> Après la création, un email sera automatiquement envoyé à l'utilisateur avec son mot de passe temporaire.
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <a href="{{ path('app_user_index') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Annuler
+                        </a>
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Créer l'utilisateur
+                        </button>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

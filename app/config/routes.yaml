@@ -1,0 +1,43 @@
+# Configuration des routes principales
+controllers:
+    resource: routing.controllers
+
+# Route pour le dashboard (page d'accueil)
+app_dashboard:
+    path: /
+    controller: App\Controller\DashboardController::index
+
+# Routes pour les clients avec préfixe
+app_client:
+    resource: ../src/Controller/ClientController.php
+    type: attribute
+    prefix: /client
+
+# Routes pour les documents avec préfixe
+app_document:
+    resource: ../src/Controller/DocumentController.php
+    type: attribute
+    prefix: /document
+
+# Routes pour l'entreprise avec préfixe
+app_company:
+    resource: ../src/Controller/CompanyController.php
+    type: attribute
+    prefix: /company
+
+# Routes pour les rapports (sans préfixe car déjà dans le contrôleur)
+app_reports:
+    resource: ../src/Controller/ReportController.php
+    type: attribute
+
+
+# Routes pour les paiements avec préfixe
+app_payment:
+    resource: ../src/Controller/PaymentController.php
+    type: attribute
+    prefix: /payment
+
+# Routes pour la recherche globale
+app_search:
+    resource: ../src/Controller/SearchController.php
+    type: attribute

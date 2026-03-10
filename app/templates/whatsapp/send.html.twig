@@ -1,0 +1,126 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{% if isDocument %}Envoyer un document{% else %}Envoyer un message{% endif %} WhatsApp{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1>
+                    {% if isDocument %}
+                        <i class="bi bi-file-earmark-arrow-up"></i> Envoyer un document
+                    {% else %}
+                        <i class="bi bi-whatsapp"></i> Envoyer un message
+                    {% endif %}
+                </h1>
+                <a href="{{ path('app_whatsapp_index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Retour
+                </a>
+            </div>
+
+            {% if not isConfigured %}
+            <div class="alert alert-info alert-permanent">
+                <i class="bi bi-info-circle"></i>
+                <strong>Mode simulation</strong> — Le message sera enregistré mais non envoyé réellement. 
+                Configurez l'API WhatsApp Business dans <code>.env.local</code> pour activer l'envoi.
+            </div>
+            {% endif %}
+
+            {# Onglets Message / Document #}
+            <ul class="nav nav-tabs mb-3">
+                <li class="nav-item">
+                    <a class="nav-link {{ not isDocument ? 'active' : '' }}" href="{{ path('app_whatsapp_send') }}">
+                        <i class="bi bi-chat-text"></i> Message texte
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link {{ isDocument ? 'active' : '' }}" href="{{ path('app_whatsapp_send_document') }}">
+                        <i class="bi bi-file-earmark-arrow-up"></i> Document
+                    </a>
+                </li>
+            </ul>
+
+            <div class="card">
+                <div class="card-body">
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate', 'enctype': 'multipart/form-data'}}) }}
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.client) }}
+                        {{ form_widget(form.client) }}
+                        {{ form_errors(form.client) }}
+                        <div class="form-text">
+                            Sélectionnez un client pour pré-remplir le numéro, ou saisissez-le manuellement.
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form_label(form.recipientPhone) }}
+                            {{ form_widget(form.recipientPhone) }}
+                            {{ form_errors(form.recipientPhone) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_label(form.recipientName) }}
+                            {{ form_widget(form.recipientName) }}
+                            {{ form_errors(form.recipientName) }}
+                        </div>
+                    </div>
+
+                    {% if isDocument %}
+                    <div class="mb-3">
+                        {{ form_label(form.document) }}
+                        {{ form_widget(form.document) }}
+                        {{ form_errors(form.document) }}
+                        <div class="form-text">
+                            Formats acceptés : PDF, Word, Excel, PowerPoint, JPEG, PNG. Taille max : 16 Mo.
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        {{ form_label(form.message) }}
+                        {{ form_widget(form.message) }}
+                        {{ form_errors(form.message) }}
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-whatsapp"></i> 
+                            {% if isDocument %}Envoyer le document{% else %}Envoyer le message{% endif %}
+                        </button>
+                        <a href="{{ path('app_whatsapp_index') }}" class="btn btn-outline-secondary">Annuler</a>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Client change handler: pré-remplir téléphone et nom
+    const clientSelect = document.querySelector('[id$="_client"]');
+    const phoneInput = document.querySelector('[id$="_recipientPhone"]');
+    const nameInput = document.querySelector('[id$="_recipientName"]');
+
+    if (clientSelect) {
+        clientSelect.addEventListener('change', function() {
+            const selected = this.options[this.selectedIndex];
+            if (selected && selected.value) {
+                const text = selected.textContent.trim();
+                const match = text.match(/^(.+?)\s*\((.+?)\)$/);
+                if (match) {
+                    nameInput.value = match[1].trim();
+                    phoneInput.value = match[2].trim();
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Modifier client - Ouma Traiteur{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1><i class="bi bi-person-plus"></i> Modifier client</h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Accueil</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_client_index') }}">Clients</a></li>
+                    <li class="breadcrumb-item active">Modifier</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+            <div class="card">
+                <div class="card-body">
+                    {{ form_start(form) }}
+                        <div class="row g-3">
+                            <div class="col-12">
+                                {{ form_row(form.name, {
+                                    'label': 'Nom du client *',
+                                    'attr': {'class': 'form-control', 'placeholder': 'Ex: CIVIC, Total Mauritanie...'}
+                                }) }}
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                {{ form_row(form.phone, {
+                                    'label': 'Téléphone',
+                                    'attr': {'class': 'form-control', 'placeholder': '+222 XX XX XX XX'}
+                                }) }}
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                {{ form_row(form.email, {
+                                    'label': 'Email',
+                                    'attr': {'class': 'form-control', 'placeholder': 'contact@exemple.mr'}
+                                }) }}
+                            </div>
+
+                            <div class="col-12">
+                                {{ form_row(form.address, {
+                                    'label': 'Adresse',
+                                    'attr': {'class': 'form-control', 'rows': 3, 'placeholder': 'Adresse complète du client...'}
+                                }) }}
+                            </div>
+                        </div>
+
+                        <div class="mt-4 d-flex gap-2 justify-content-end">
+                            <a href="{{ path('app_client_index') }}" class="btn btn-secondary">
+                                <i class="bi bi-x-circle"></i> Annuler
+                            </a>
+                            <button type="submit" class="btn btn-ouma-primary">
+                                <i class="bi bi-save"></i> Enregistrer
+                            </button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

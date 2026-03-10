@@ -1,0 +1,20 @@
+{
+    "require": {
+        "symfony/security-csrf": "^7.4",
+        "symfony/string": "^7.4",
+        "symfonycasts/reset-password-bundle": "^1.24",
+        "symfony/form": "^7.4",
+        "symfony/validator": "^7.4",
+        "beberlei/doctrineextensions": "^1.5",
+        "symfony/messenger": "^7.4"
+    },
+    "require-dev": {
+        "symfony/orm-pack": "^2.7",
+        "symfony/maker-bundle": "^1.65",
+        "symfony/security-bundle": "^7.4",
+        "symfony/mailer": "^7.4",
+        "symfony/ux-turbo": "^2.32",
+        "dompdf/dompdf": "^3.1",
+        "doctrine/doctrine-fixtures-bundle": "^4.3"
+    }
+}

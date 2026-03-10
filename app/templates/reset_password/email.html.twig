@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Réinitialisation de mot de passe</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+        }
+        .content {
+            background: #ffffff;
+            padding: 30px;
+            border: 1px solid #ddd;
+            border-top: none;
+        }
+        .button {
+            display: inline-block;
+            background: #dc3545;
+            color: white;
+            text-decoration: none;
+            padding: 15px 30px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background: #c82333;
+        }
+        .footer {
+            background: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-radius: 0 0 10px 10px;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .security-notice {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🔐 Réinitialisation de mot de passe</h1>
+    </div>
+
+    <div class="content">
+        <h2>Bonjour {{ user.fullName }},</h2>
+
+        <p>Nous avons reçu une demande de réinitialisation de mot de passe pour votre compte Ouma Traiteur.</p>
+
+        <p>Pour créer un nouveau mot de passe, cliquez sur le bouton ci-dessous :</p>
+
+        <div style="text-align: center;">
+            <a href="{{ resetUrl }}" class="button">
+                🔑 Réinitialiser mon mot de passe
+            </a>
+        </div>
+
+        <p style="font-size: 14px; color: #666;">
+            Ou copiez ce lien dans votre navigateur :<br>
+            <a href="{{ resetUrl }}" style="word-break: break-all;">{{ resetUrl }}</a>
+        </p>
+
+        <div class="warning">
+            <strong>⚠️ Important :</strong> Ce lien expirera le {{ expiresAt|date('d/m/Y à H:i') }} (dans 1 heure).
+        </div>
+
+        <div class="security-notice">
+            <strong>🛡️ Sécurité :</strong> Si vous n'avez pas demandé cette réinitialisation, ignorez cet email. Votre mot de passe actuel reste inchangé.
+        </div>
+
+        <p>
+            Cordialement,<br>
+            <strong>L'équipe Ouma Traiteur</strong>
+        </p>
+    </div>
+
+    <div class="footer">
+        <p><strong>Ouma Traiteur</strong></p>
+        <p>📞 46246698 | 📍 Nouakchott, Mauritanie</p>
+        <hr style="border: none; border-top: 1px solid #ddd; margin: 15px 0;">
+        <p>Cet email a été généré automatiquement. Merci de ne pas y répondre.</p>
+        <p style="margin-top: 10px;">
+            <small>Pour votre sécurité, ne partagez jamais ce lien avec qui que ce soit.</small>
+        </p>
+    </div>
+</body>
+</html>

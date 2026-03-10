@@ -1,0 +1,395 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nouveau {{ type == 'quote' ? 'devis' : 'facture' }} - Ouma Traiteur{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .item-row {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        border: 1px solid #dee2e6;
+        position: relative;
+    }
+    .item-total {
+        background: #e7f5ff;
+        padding: 0.5rem;
+        border-radius: 5px;
+        font-weight: bold;
+        text-align: center;
+    }
+    .totals-section {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 10px;
+        border: 2px solid #00a651;
+    }
+    .total-ttc {
+        font-size: 1.5rem;
+        color: #00a651;
+        font-weight: bold;
+    }
+    .remove-item {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+
+    @media (max-width: 768px) {
+        .item-row {
+            padding: 0.75rem 0.75rem 3rem 0.75rem;
+        }
+        .total-ttc {
+            font-size: 1.25rem;
+        }
+        .remove-item {
+            position: static;
+            margin-top: 10px;
+            width: 100%;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1>
+                <i class="bi bi-{{ type == 'quote' ? 'file-earmark-text' : 'receipt' }}"></i>
+                Nouveau {{ type == 'quote' ? 'devis' : 'facture' }}
+            </h1>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Accueil</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_document_index') }}">Documents</a></li>
+                    <li class="breadcrumb-item active">Nouveau</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            {{ form_start(form) }}
+                {# Informations générales #}
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label">Type</label>
+                        <input type="text" class="form-control"
+                               value="{{ type == 'quote' ? 'Devis' : 'Facture' }}" disabled>
+                    </div>
+
+                    <div class="col-md-6">
+                        {{ form_row(form.number) }}
+                    </div>
+
+                    <div class="col-md-4">
+                        {{ form_row(form.date, {
+                            'label': 'Date',
+                            'attr': {'class': 'form-control'}
+                        }) }}
+                    </div>
+
+                    <div class="col-md-4">
+                        {{ form_row(form.client, {
+                            'label': 'Client',
+                            'attr': {'class': 'form-select'}
+                        }) }}
+                    </div>
+
+                    <div class="col-md-4">
+                        {{ form_row(form.location, {
+                            'label': 'Lieu',
+                            'attr': {'class': 'form-control', 'placeholder': 'Nouakchott'}
+                        }) }}
+                    </div>
+                </div>
+
+                {# Prestations #}
+                <div class="mb-4">
+                    <h5 class="mb-3">
+                        <i class="bi bi-list-ul"></i> Prestations
+                    </h5>
+
+                    <div id="items-container"
+                         data-prototype="{{ form_widget(form.items.vars.prototype)|e('html_attr') }}"
+                         data-index="{{ form.items|length }}">
+                        {# Les lignes seront ajoutées ici dynamiquement #}
+                    </div>
+
+                    <button type="button" id="add-item" class="btn btn-success mt-2">
+                        <i class="bi bi-plus-circle"></i> Ajouter une ligne
+                    </button>
+                </div>
+
+                {# Totaux #}
+                <div class="totals-section">
+                    <div class="row g-3">
+                        <div class="col-md-4 ms-auto">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>Total HT :</span>
+                                <strong><span id="total-ht">0</span> MRU</strong>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span>TVA 16% :</span>
+                                <strong><span id="total-tva">0</span> MRU</strong>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between">
+                                <span class="h5">Total TTC :</span>
+                                <span class="total-ttc" id="total-ttc">0 MRU</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {# Boutons #}
+                <div class="mt-4 d-flex gap-2 justify-content-end">
+                    <a href="{{ path('app_document_index') }}" class="btn btn-secondary">
+                        <i class="bi bi-x-circle"></i> Annuler
+                    </a>
+                    <button type="submit" class="btn btn-ouma-primary">
+                        <i class="bi bi-save"></i> Enregistrer
+                    </button>
+                </div>
+            {{ form_end(form) }}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('items-container');
+    const addButton = document.getElementById('add-item');
+
+    if (!container || !addButton) {
+        console.error('Container ou bouton non trouvé');
+        return;
+    }
+
+    let index = parseInt(container.dataset.index) || 0;
+
+    // Fonction pour créer une nouvelle ligne complète
+    function createItemRow(itemIndex) {
+        const prototype = container.dataset.prototype;
+        if (!prototype) {
+            console.error('Prototype non trouvé');
+            return null;
+        }
+
+        // Remplacer __name__ par l'index
+        const prototypeHtml = prototype.replace(/__name__/g, itemIndex);
+
+        // Créer la structure complète
+        const wrapper = document.createElement('div');
+        wrapper.className = 'item-row';
+        wrapper.dataset.itemIndex = itemIndex;
+
+        wrapper.innerHTML = `
+            <button type="button" class="btn btn-sm btn-danger remove-item">
+                <i class="bi bi-trash"></i>
+            </button>
+
+            <div class="row g-2">
+                <div class="col-12">
+                    <label class="form-label">Désignation</label>
+                    <div class="designation-field"></div>
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Nb jours</label>
+                    <div class="days-field"></div>
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Nb pers.</label>
+                    <div class="persons-field"></div>
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Nb serv.</label>
+                    <div class="services-field"></div>
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <label class="form-label">Prix unit.</label>
+                    <div class="price-field"></div>
+                </div>
+
+                <div class="col-12 col-md-3">
+                    <label class="form-label">Total ligne</label>
+                    <div class="item-total">
+                        <span class="item-total-value">0</span> MRU
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // Parser le prototype HTML
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = prototypeHtml;
+
+        // Extraire et placer les champs
+        const designationInput = tempDiv.querySelector('[id$="_designation"]');
+        const daysInput = tempDiv.querySelector('[id$="_numberOfDays"]');
+        const personsInput = tempDiv.querySelector('[id$="_numberOfPersons"]');
+        const servicesInput = tempDiv.querySelector('[id$="_numberOfServices"]');
+        const priceInput = tempDiv.querySelector('[id$="_unitPrice"]');
+
+        if (designationInput) {
+            designationInput.className = 'form-control';
+            designationInput.placeholder = 'Ex: Pause café matin';
+            wrapper.querySelector('.designation-field').appendChild(designationInput);
+        }
+
+        if (daysInput) {
+            daysInput.className = 'form-control item-field';
+            daysInput.min = 1;
+            daysInput.value = 1;
+            wrapper.querySelector('.days-field').appendChild(daysInput);
+        }
+
+        if (personsInput) {
+            personsInput.className = 'form-control item-field';
+            personsInput.min = 1;
+            personsInput.value = 1;
+            wrapper.querySelector('.persons-field').appendChild(personsInput);
+        }
+
+        if (servicesInput) {
+            servicesInput.className = 'form-control item-field';
+            servicesInput.min = 1;
+            servicesInput.value = 1;
+            wrapper.querySelector('.services-field').appendChild(servicesInput);
+        }
+
+        if (priceInput) {
+            priceInput.className = 'form-control item-field';
+            priceInput.min = 0;
+            priceInput.step = 0.01;
+            priceInput.value = 0;
+            wrapper.querySelector('.price-field').appendChild(priceInput);
+        }
+
+        return wrapper;
+    }
+
+    // Événement sur le bouton "Ajouter une ligne"
+    addButton.addEventListener('click', function(e) {
+        e.preventDefault();
+
+        const newRow = createItemRow(index);
+        if (newRow) {
+            container.appendChild(newRow);
+            attachEventListeners(newRow);
+            index++;
+            container.dataset.index = index;
+            calculateTotals();
+        }
+    });
+
+    // Supprimer une ligne
+    container.addEventListener('click', function(e) {
+        if (e.target.closest('.remove-item')) {
+            e.preventDefault();
+            const row = e.target.closest('.item-row');
+            if (row) {
+                row.remove();
+                calculateTotals();
+            }
+        }
+    });
+
+    // Attacher les événements de calcul
+    function attachEventListeners(row) {
+        const fields = row.querySelectorAll('.item-field');
+        fields.forEach(field => {
+            field.addEventListener('input', function() {
+                calculateItemTotal(row);
+                calculateTotals();
+            });
+        });
+    }
+
+    // Calculer le total d'une ligne
+    function calculateItemTotal(row) {
+        const daysInput = row.querySelector('[id$="_numberOfDays"]');
+        const personsInput = row.querySelector('[id$="_numberOfPersons"]');
+        const servicesInput = row.querySelector('[id$="_numberOfServices"]');
+        const priceInput = row.querySelector('[id$="_unitPrice"]');
+
+        const days = parseFloat(daysInput?.value) || 0;
+        const persons = parseFloat(personsInput?.value) || 0;
+        const services = parseFloat(servicesInput?.value) || 1;
+        const price = parseFloat(priceInput?.value) || 0;
+
+        const total = days * persons * services * price;
+
+        const totalElement = row.querySelector('.item-total-value');
+        if (totalElement) {
+            totalElement.textContent = Math.round(total).toLocaleString('fr-FR');
+        }
+
+        return total;
+    }
+
+    // Calculer les totaux généraux
+    function calculateTotals() {
+        let totalHT = 0;
+
+        document.querySelectorAll('.item-row').forEach(row => {
+            totalHT += calculateItemTotal(row);
+        });
+
+        const totalTVA = totalHT * 0.16;
+        const totalTTC = totalHT + totalTVA;
+
+        document.getElementById('total-ht').textContent = Math.round(totalHT).toLocaleString('fr-FR');
+        document.getElementById('total-tva').textContent = Math.round(totalTVA).toLocaleString('fr-FR');
+        document.getElementById('total-ttc').textContent = Math.round(totalTTC).toLocaleString('fr-FR') + ' MRU';
+    }
+
+    // Validation avant soumission
+    const form = document.querySelector('form[name="document"]');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const items = container.querySelectorAll('.item-row');
+
+            if (items.length === 0) {
+                e.preventDefault();
+                alert('Veuillez ajouter au moins une prestation');
+                return false;
+            }
+
+            // Vérifier que chaque ligne a des valeurs valides
+            let hasError = false;
+            items.forEach(function(row) {
+                const designation = row.querySelector('[id$="_designation"]')?.value;
+                const days = parseFloat(row.querySelector('[id$="_numberOfDays"]')?.value) || 0;
+                const persons = parseFloat(row.querySelector('[id$="_numberOfPersons"]')?.value) || 0;
+                const price = parseFloat(row.querySelector('[id$="_unitPrice"]')?.value) || 0;
+
+                if (!designation || days <= 0 || persons <= 0) {
+                    hasError = true;
+                }
+            });
+
+            if (hasError) {
+                e.preventDefault();
+                alert('Veuillez remplir correctement toutes les lignes');
+                return false;
+            }
+        });
+    }
+
+    // Ajouter automatiquement une première ligne au chargement
+    if (container.querySelectorAll('.item-row').length === 0) {
+        addButton.click();
+    }
+});
+</script>
+{% endblock %}

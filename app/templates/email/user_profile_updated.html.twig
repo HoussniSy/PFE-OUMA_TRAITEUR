@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil modifié</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #00a651 0%, #008040 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #ffffff;
+            padding: 30px;
+            border: 1px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+        }
+        .info-box {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 style="margin: 0;">✏️ Profil mis à jour</h1>
+    </div>
+
+    <div class="content">
+        <h2 style="color: #00a651;">Bonjour {{ user.fullName }},</h2>
+
+        <p>Nous vous confirmons que votre profil sur Ouma Traiteur a été mis à jour avec succès.</p>
+
+        <div class="info-box">
+            <strong>ℹ️ Informations actuelles :</strong><br>
+            <ul>
+                <li><strong>Nom complet :</strong> {{ user.fullName }}</li>
+                <li><strong>Email :</strong> {{ user.email }}</li>
+                {% if user.phone %}
+                    <li><strong>Téléphone :</strong> {{ user.phone }}</li>
+                {% endif %}
+                {% if user.poste %}
+                    <li><strong>Poste :</strong> {{ user.poste }}</li>
+                {% endif %}
+            </ul>
+        </div>
+
+        <p><strong>Sécurité :</strong> Si vous n'êtes pas à l'origine de cette modification, veuillez contacter immédiatement votre administrateur et changer votre mot de passe.</p>
+
+        <p style="margin-top: 30px;">
+            Cordialement,<br>
+            <strong>L'équipe Ouma Traiteur</strong>
+        </p>
+    </div>
+
+    <div class="footer">
+        © {{ 'now'|date('Y') }} Ouma Traiteur - Tous droits réservés<br>
+        📞 46246698 | 📍 Nouakchott, Mauritanie
+    </div>
+</body>
+</html>

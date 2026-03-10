@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Catégories de services{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="bi bi-tags me-2"></i>Catégories de services
+            </h1>
+            <p class="text-muted mb-0">Organisez vos prestations par catégories</p>
+        </div>
+        <a href="{{ path('app_service_category_new') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Nouvelle catégorie
+        </a>
+    </div>
+
+    {% if categoriesWithCount is empty %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-tags display-1 text-muted mb-3"></i>
+                <h5>Aucune catégorie</h5>
+                <p class="text-muted">Créez votre première catégorie pour organiser vos prestations.</p>
+                <a href="{{ path('app_service_category_new') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-1"></i>Créer une catégorie
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="row g-3">
+            {% for result in categoriesWithCount %}
+                {% set category = result[0] %}
+                {% set itemCount = result.itemCount %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="rounded-circle me-3" style="width: 40px; height: 40px; background-color: {{ category.color }}; flex-shrink: 0;"></div>
+                                <div class="flex-grow-1">
+                                    <h5 class="mb-0">{{ category.name }}</h5>
+                                    <small class="text-muted">{{ itemCount }} prestation{{ itemCount > 1 ? 's' : '' }}</small>
+                                </div>
+                            </div>
+                            {% if category.description %}
+                                <p class="text-muted small mb-3">{{ category.description }}</p>
+                            {% endif %}
+                            <div class="d-flex gap-2">
+                                <a href="{{ path('app_service_category_edit', {'id': category.id}) }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="bi bi-pencil me-1"></i>Modifier
+                                </a>
+                                {% if is_granted('ROLE_COMPTABLE') %}
+                                    <form action="{{ path('app_service_category_delete', {'id': category.id}) }}" method="post" class="d-inline" onsubmit="return confirm('Supprimer cette catégorie ?');">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ category.id) }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash me-1"></i>Supprimer
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

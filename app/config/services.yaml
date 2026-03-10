@@ -1,0 +1,90 @@
+# Configuration des services personnalisés
+parameters:
+    # Répertoire pour les logos
+    app.logo_directory: '%kernel.project_dir%/public/uploads/logos'
+
+    # Répertoire pour les avatars utilisateurs
+    app.avatar_directory: '%kernel.project_dir%/public/uploads/avatars'
+
+    # Informations de l'entreprise (valeurs par défaut)
+    app.company.name: 'Ouma Traiteur'
+    app.company.email: 'contact@oumatraiteur.mr'
+
+services:
+    # Configuration par défaut pour tous les services
+    _defaults:
+        autowire: true
+        autoconfigure: true
+        bind:
+            $projectDir: '%kernel.project_dir%'
+
+    # Chargement automatique des services depuis src/
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+
+    # Controllers avec tags automatiques
+    App\Controller\:
+        resource: '../src/Controller/'
+        tags: ['controller.service_arguments']
+
+    # ========================================
+    # SERVICES EXISTANTS
+    # ========================================
+
+    # Service d'upload de fichiers (logos entreprise)
+    App\Service\FileUploadService:
+        arguments:
+            $uploadDirectory: '%app.logo_directory%'
+
+    # Service de génération PDF
+    App\Service\PdfGeneratorService:
+        arguments:
+            $twig: '@twig'
+
+    # Service d'envoi d'emails (documents)
+    App\Service\EmailService:
+        arguments:
+            $mailer: '@mailer'
+            $pdfGenerator: '@App\Service\PdfGeneratorService'
+
+    # ========================================
+    # NOUVEAUX SERVICES - GESTION UTILISATEURS
+    # ========================================
+
+    # Service d'upload d'avatars utilisateurs
+    App\Service\AvatarUploadService:
+        arguments:
+            $avatarDirectory: '%app.avatar_directory%'
+            $slugger: '@Symfony\Component\String\Slugger\SluggerInterface'
+
+    # Service d'envoi d'emails utilisateurs (bienvenue, notifications)
+    App\Service\UserEmailService:
+        arguments:
+            $mailer: '@mailer'
+
+    # Service de chiffrement (utilise APP_SECRET comme clé)
+    App\Service\EncryptionService:
+        arguments:
+            $appSecret: '%kernel.secret%'
+
+    # ========================================
+    # SERVICES - COMMUNICATIONS (SMS & WhatsApp)
+    # ========================================
+
+    # Service d'envoi de SMS (Twilio)
+    App\Service\SmsService:
+        arguments:
+            $twilioAccountSid: '%env(TWILIO_ACCOUNT_SID)%'
+            $twilioAuthToken: '%env(TWILIO_AUTH_TOKEN)%'
+            $twilioFromNumber: '%env(TWILIO_FROM_NUMBER)%'
+
+    # Service WhatsApp Business (Meta Cloud API)
+    App\Service\WhatsAppService:
+        arguments:
+            $whatsappApiToken: '%env(WHATSAPP_API_TOKEN)%'
+            $whatsappPhoneNumberId: '%env(WHATSAPP_PHONE_NUMBER_ID)%'
+            $whatsappBusinessAccountId: '%env(WHATSAPP_BUSINESS_ACCOUNT_ID)%'

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compte activé</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #28a745 0%, #00a651 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #ffffff;
+            padding: 30px;
+            border: 1px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+        }
+        .success-box {
+            background: #d4edda;
+            border-left: 4px solid #28a745;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .button {
+            display: inline-block;
+            background: #00a651;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 style="margin: 0;">✅ Bonne nouvelle !</h1>
+    </div>
+
+    <div class="content">
+        <h2 style="color: #28a745;">Bonjour {{ user.fullName }},</h2>
+
+        <p>Nous avons le plaisir de vous informer que votre compte Ouma Traiteur a été <strong>réactivé</strong> !</p>
+
+        <div class="success-box">
+            <strong>✅ Vous pouvez maintenant :</strong><br>
+            Vous connecter à nouveau et accéder à toutes les fonctionnalités de l'application.
+        </div>
+
+        <div style="text-align: center;">
+            <a href="http://localhost:8001/login" class="button">
+                Se connecter maintenant
+            </a>
+        </div>
+
+        <h3>Rappel de vos informations :</h3>
+        <ul>
+            <li><strong>Email :</strong> {{ user.email }}</li>
+            <li><strong>Rôle :</strong> {{ user.roleName }}</li>
+        </ul>
+
+        <p>Si vous avez oublié votre mot de passe, vous pouvez utiliser la fonction "Mot de passe oublié ?" sur la page de connexion.</p>
+
+        <p style="margin-top: 30px;">
+            Cordialement,<br>
+            <strong>L'équipe Ouma Traiteur</strong>
+        </p>
+    </div>
+
+    <div class="footer">
+        © {{ 'now'|date('Y') }} Ouma Traiteur - Tous droits réservés<br>
+        📞 46246698 | 📍 Nouakchott, Mauritanie
+    </div>
+</body>
+</html>

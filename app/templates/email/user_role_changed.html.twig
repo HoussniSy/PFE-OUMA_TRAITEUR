@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Changement de rôle</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #ffffff;
+            padding: 30px;
+            border: 1px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+        }
+        .info-box {
+            background: #d1ecf1;
+            border-left: 4px solid #17a2b8;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .role-change {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 style="margin: 0;">🔄 Mise à jour de votre rôle</h1>
+    </div>
+
+    <div class="content">
+        <h2 style="color: #007bff;">Bonjour {{ user.fullName }},</h2>
+
+        <p>Nous vous informons que votre rôle dans l'application Ouma Traiteur a été modifié par un administrateur.</p>
+
+        <div class="role-change">
+            <div style="display: inline-block; margin: 0 20px;">
+                <div style="color: #666; margin-bottom: 10px;">Ancien rôle :</div>
+                <div style="font-size: 20px; font-weight: bold; color: #dc3545;">{{ oldRole }}</div>
+            </div>
+            <div style="display: inline-block; font-size: 30px; color: #666;">→</div>
+            <div style="display: inline-block; margin: 0 20px;">
+                <div style="color: #666; margin-bottom: 10px;">Nouveau rôle :</div>
+                <div style="font-size: 20px; font-weight: bold; color: #28a745;">{{ newRole }}</div>
+            </div>
+        </div>
+
+        <div class="info-box">
+            <strong>ℹ️ Information :</strong><br>
+            Selon votre nouveau rôle, vos permissions et accès aux différentes fonctionnalités de l'application peuvent avoir changé.
+        </div>
+
+        <h3>Que signifie ce changement ?</h3>
+        <ul>
+            <li>Vos permissions ont été mises à jour</li>
+            <li>Vous pourriez avoir accès à de nouvelles fonctionnalités</li>
+            <li>Certaines options pourraient ne plus être disponibles</li>
+        </ul>
+
+        <p>À votre prochaine connexion, vous verrez automatiquement les changements correspondant à votre nouveau rôle.</p>
+
+        <p>Si vous avez des questions concernant ce changement ou vos nouvelles permissions, n'hésitez pas à contacter votre administrateur.</p>
+
+        <p style="margin-top: 30px;">
+            Cordialement,<br>
+            <strong>L'équipe Ouma Traiteur</strong>
+        </p>
+    </div>
+
+    <div class="footer">
+        © {{ 'now'|date('Y') }} Ouma Traiteur - Tous droits réservés<br>
+        📞 46246698 | 📍 Nouakchott, Mauritanie
+    </div>
+</body>
+</html>

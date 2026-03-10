@@ -1,0 +1,111 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Envoyer un SMS{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="bi bi-send"></i> Envoyer un SMS</h1>
+                <a href="{{ path('app_sms_index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Retour
+                </a>
+            </div>
+
+            {% if not isConfigured %}
+            <div class="alert alert-info alert-permanent">
+                <i class="bi bi-info-circle"></i>
+                <strong>Mode simulation</strong> — Le SMS sera enregistré mais non envoyé réellement. 
+                Configurez Twilio dans <code>.env.local</code> pour activer l'envoi.
+            </div>
+            {% endif %}
+
+            <div class="card">
+                <div class="card-body">
+                    {{ form_start(form, {'attr': {'novalidate': 'novalidate'}}) }}
+                    
+                    <div class="mb-3">
+                        {{ form_label(form.client) }}
+                        {{ form_widget(form.client) }}
+                        {{ form_errors(form.client) }}
+                        <div class="form-text">
+                            Sélectionnez un client pour pré-remplir le numéro, ou saisissez-le manuellement.
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            {{ form_label(form.recipientPhone) }}
+                            {{ form_widget(form.recipientPhone) }}
+                            {{ form_errors(form.recipientPhone) }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form_label(form.recipientName) }}
+                            {{ form_widget(form.recipientName) }}
+                            {{ form_errors(form.recipientName) }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_label(form.message) }}
+                        {{ form_widget(form.message) }}
+                        {{ form_errors(form.message) }}
+                        <div class="form-text">
+                            <span id="smsCharCount">0</span>/160 caractères 
+                            (<span id="smsSegments">1</span> segment{{ 's' }})
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-ouma-primary">
+                            <i class="bi bi-send"></i> Envoyer le SMS
+                        </button>
+                        <a href="{{ path('app_sms_index') }}" class="btn btn-outline-secondary">Annuler</a>
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Client change handler: pré-remplir téléphone et nom
+    const clientSelect = document.querySelector('#sms_client');
+    const phoneInput = document.querySelector('#sms_recipientPhone');
+    const nameInput = document.querySelector('#sms_recipientName');
+
+    if (clientSelect) {
+        clientSelect.addEventListener('change', function() {
+            const selected = this.options[this.selectedIndex];
+            if (selected && selected.value) {
+                const text = selected.textContent.trim();
+                const match = text.match(/^(.+?)\s*\((.+?)\)$/);
+                if (match) {
+                    nameInput.value = match[1].trim();
+                    phoneInput.value = match[2].trim();
+                }
+            }
+        });
+    }
+
+    // Compteur de caractères SMS
+    const messageInput = document.querySelector('#sms_message');
+    const charCount = document.getElementById('smsCharCount');
+    const segments = document.getElementById('smsSegments');
+
+    if (messageInput && charCount && segments) {
+        messageInput.addEventListener('input', function() {
+            const len = this.value.length;
+            charCount.textContent = len;
+            segments.textContent = Math.max(1, Math.ceil(len / 160));
+        });
+    }
+});
+</script>
+{% endblock %}

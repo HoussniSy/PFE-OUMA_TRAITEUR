@@ -1,0 +1,294 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Clients - Ouma Traiteur{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .filter-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+    }
+
+    .filter-toggle {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .filter-toggle:hover {
+        background-color: #e9ecef;
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1><i class="bi bi-people"></i> Clients</h1>
+            <p class="text-muted">Gestion des clients</p>
+        </div>
+    </div>
+
+    {# Statistiques #}
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1 small">Total Clients</p>
+                            <h3 class="mb-0">{{ totalClients }}</h3>
+                        </div>
+                        <div class="text-primary" style="font-size: 2.5rem;">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <p class="text-muted mb-1 small">Nouveaux ce mois</p>
+                            <h3 class="mb-0">{{ newThisMonth }}</h3>
+                        </div>
+                        <div class="text-success" style="font-size: 2.5rem;">
+                            <i class="bi bi-person-plus-fill"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Panneau de filtres #}
+    <div class="card mb-4">
+        <div class="card-header filter-toggle" data-bs-toggle="collapse" data-bs-target="#advancedFilters">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-funnel"></i>
+                    <strong>Filtres de recherche</strong>
+                    {% if activeFiltersCount|default(0) > 0 %}
+                        <span class="badge bg-success ms-2">{{ activeFiltersCount }}</span>
+                    {% endif %}
+                </div>
+                <i class="bi bi-chevron-down"></i>
+            </div>
+            {% if filterSummary|default('') %}
+                <small class="text-muted d-block mt-1">{{ filterSummary }}</small>
+            {% endif %}
+        </div>
+
+        <div id="advancedFilters" class="collapse {% if activeFiltersCount|default(0) > 0 %}show{% endif %}">
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    {# Recherche de base #}
+                    <div class="col-md-6">
+                        <label class="form-label small">Recherche</label>
+                        <div class="input-group input-group-sm">
+                            <span class="input-group-text">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" name="search" class="form-control"
+                                   placeholder="Nom, email ou téléphone..." value="{{ search }}">
+                        </div>
+                    </div>
+
+                    {# Chiffre d'affaires #}
+                    <div class="col-md-3">
+                        <label class="form-label small">CA minimum (MRU)</label>
+                        <input type="number" name="ca_min" class="form-control form-control-sm"
+                               placeholder="Ex: 50000" value="{{ filters.ca_min|default('') }}" min="0">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label small">CA maximum (MRU)</label>
+                        <input type="number" name="ca_max" class="form-control form-control-sm"
+                               placeholder="Ex: 500000" value="{{ filters.ca_max|default('') }}" min="0">
+                    </div>
+
+                    {# Période d'inscription #}
+                    <div class="col-md-6">
+                        <label class="form-label small">Inscrit à partir du</label>
+                        <input type="date" name="created_from" class="form-control form-control-sm"
+                               value="{{ filters.created_from|default('') }}">
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small">Inscrit jusqu'au</label>
+                        <input type="date" name="created_to" class="form-control form-control-sm"
+                               value="{{ filters.created_to|default('') }}">
+                    </div>
+
+                    {# Messages de validation #}
+                    {% if validationErrors|default([]) %}
+                        <div class="col-12">
+                            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                                <i class="bi bi-exclamation-triangle"></i>
+                                <ul class="mb-0">
+                                    {% for error in validationErrors %}
+                                        <li>{{ error }}</li>
+                                    {% endfor %}
+                                </ul>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                            </div>
+                        </div>
+                    {% endif %}
+
+                    {# Boutons d'action #}
+                    <div class="col-12">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary btn-sm">
+                                <i class="bi bi-search"></i> Appliquer les filtres
+                            </button>
+                            <a href="{{ path('app_client_index') }}" class="btn btn-secondary btn-sm">
+                                <i class="bi bi-x-circle"></i> Réinitialiser
+                            </a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {# Actions principales #}
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+            <span class="text-muted">
+                <strong>{{ clients|length }}</strong> client(s) trouvé(s) sur <strong>{{ totalClients }}</strong>
+            </span>
+        </div>
+        <div class="d-flex gap-2">
+            {# Boutons export #}
+            <a href="{{ path('app_client_export_excel', {search: search|default('')}) }}"
+               class="btn btn-success btn-sm">
+                <i class="bi bi-file-earmark-excel"></i> Excel
+            </a>
+            <a href="{{ path('app_client_export_csv', {search: search|default('')}) }}"
+               class="btn btn-outline-success btn-sm">
+                <i class="bi bi-filetype-csv"></i> CSV
+            </a>
+
+            {# Bouton nouveau client #}
+            <a href="{{ path('app_client_new') }}" class="btn btn-success btn-sm">
+                <i class="bi bi-person-plus"></i> Nouveau client
+            </a>
+        </div>
+    </div>
+
+    {# Version Desktop - Tableau #}
+    <div class="card d-none d-md-block">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nom</th>
+                        <th>Téléphone</th>
+                        <th>Email</th>
+                        <th>Adresse</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client in clients %}
+                        <tr>
+                            <td><strong>{{ client.name }}</strong></td>
+                            <td>
+                                {% if client.phone %}
+                                    <i class="bi bi-telephone"></i> {{ client.phone }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if client.email %}
+                                    <i class="bi bi-envelope"></i> {{ client.email }}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if client.address %}
+                                    {{ client.address|slice(0, 50) }}{% if client.address|length > 50 %}...{% endif %}
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{{ path('app_client_show', {id: client.id}) }}"
+                                       class="btn btn-outline-primary" title="Voir">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ path('app_client_edit', {id: client.id}) }}"
+                                       class="btn btn-outline-secondary" title="Modifier">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{{ path('app_client_export_history_excel', {id: client.id}) }}"
+                                       class="btn btn-outline-success" title="Exporter l'historique">
+                                         <i class="bi bi-file-earmark-excel"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-5">
+                                <i class="bi bi-inbox" style="font-size: 3rem;"></i><br>
+                                Aucun client trouvé
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# Version Mobile - Cartes #}
+    <div class="d-md-none">
+        {% for client in clients %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title mb-2">{{ client.name }}</h5>
+
+                    {% if client.phone %}
+                        <p class="mb-1">
+                            <i class="bi bi-telephone text-primary"></i> {{ client.phone }}
+                        </p>
+                    {% endif %}
+
+                    {% if client.email %}
+                        <p class="mb-1 small">
+                            <i class="bi bi-envelope text-info"></i> {{ client.email }}
+                        </p>
+                    {% endif %}
+
+                    {% if client.address %}
+                        <p class="mb-2 text-muted small">
+                            <i class="bi bi-geo-alt"></i> {{ client.address }}
+                        </p>
+                    {% endif %}
+
+                    <div class="d-flex gap-2 mt-3">
+                        <a href="{{ path('app_client_show', {id: client.id}) }}" class="btn btn-sm btn-outline-primary flex-fill">
+                            <i class="bi bi-eye"></i> Voir
+                        </a>
+                        <a href="{{ path('app_client_edit', {id: client.id}) }}" class="btn btn-sm btn-outline-secondary flex-fill">
+                            <i class="bi bi-pencil"></i> Modifier
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem;"></i><br>
+                Aucun client trouvé
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

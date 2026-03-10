@@ -1,0 +1,218 @@
+{% extends "base.html.twig" %}
+
+{% block title %}Paramètres utilisateur{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1><i class="bi bi-gear"></i> Paramètres utilisateur</h1>
+            <p class="text-muted">Personnalisez votre expérience et vos préférences</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Sidebar Navigation -->
+        <div class="col-lg-3 mb-4 mb-lg-0">
+            <div class="list-group sticky-top" style="top: 20px;">
+                <a href="{{ path('app_user_settings') }}" class="list-group-item list-group-item-action active">
+                    <i class="bi bi-sliders me-2"></i> Général
+                </a>
+                <a href="{{ path('app_user_settings_email') }}" class="list-group-item list-group-item-action">
+                    <i class="bi bi-envelope me-2"></i> Emails
+                </a>
+                <a href="{{ path('app_profile') }}" class="list-group-item list-group-item-action">
+                    <i class="bi bi-person me-2"></i> Profil
+                </a>
+                <a href="{{ path('app_profile_change_password') }}" class="list-group-item list-group-item-action">
+                    <i class="bi bi-key me-2"></i> Mot de passe
+                </a>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-lg-9">
+            <!-- Appearance Settings -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-palette me-2"></i> Apparence
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-sm-6">
+                            <label class="form-label">Thème</label>
+                            <div class="d-flex gap-2">
+                                <button type="button" class="btn btn-outline-secondary theme-btn" data-theme="light">
+                                    <i class="bi bi-sun"></i> Clair
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary theme-btn" data-theme="dark">
+                                    <i class="bi bi-moon"></i> Sombre
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary theme-btn" data-theme="system">
+                                    <i class="bi bi-question-circle"></i> Système
+                                </button>
+                            </div>
+                            <small class="form-text text-muted d-block mt-2">
+                                Le mode sombre est basé sur vos préférences système par défaut.
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Dashboard Settings -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-columns-gap me-2"></i> Dashboard
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted">Personnalisez l'affichage de votre dashboard</p>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6>Widgets visibles</h6>
+                            <div class="list-group">
+                                <label class="list-group-item">
+                                    <input class="form-check-input me-2" type="checkbox" checked>
+                                    Total Clients
+                                </label>
+                                <label class="list-group-item">
+                                    <input class="form-check-input me-2" type="checkbox" checked>
+                                    Total Devis
+                                </label>
+                                <label class="list-group-item">
+                                    <input class="form-check-input me-2" type="checkbox" checked>
+                                    Total Factures
+                                </label>
+                                <label class="list-group-item">
+                                    <input class="form-check-input me-2" type="checkbox" checked>
+                                    Revenus Mensuels
+                                </label>
+                                <label class="list-group-item">
+                                    <input class="form-check-input me-2" type="checkbox" checked>
+                                    Documents Récents
+                                </label>
+                                <label class="list-group-item">
+                                    <input class="form-check-input me-2" type="checkbox" checked>
+                                    Devis en Attente
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <h6>Options</h6>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="expandWidgets" checked>
+                                <label class="form-check-label" for="expandWidgets">
+                                    Afficher les widgets en plein écran sur mobile
+                                </label>
+                            </div>
+                            <div class="form-check mb-2">
+                                <input class="form-check-input" type="checkbox" id="showCharts" checked>
+                                <label class="form-check-label" for="showCharts">
+                                    Afficher les graphiques
+                                </label>
+                            </div>
+                            <button type="button" class="btn btn-sm btn-outline-primary mt-3">
+                                <i class="bi bi-arrow-counterclockwise me-2"></i> Réinitialiser les widgets
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-bell me-2"></i> Notifications
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="emailNotif" checked>
+                        <label class="form-check-label" for="emailNotif">
+                            Notifications par email
+                        </label>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="invoiceNotif" checked>
+                        <label class="form-check-label" for="invoiceNotif">
+                            M'alerter quand une facture est payée
+                        </label>
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input class="form-check-input" type="checkbox" id="quoteNotif" checked>
+                        <label class="form-check-label" for="quoteNotif">
+                            M'alerter quand un devis expire
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Import/Export -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="bi bi-cloud me-2"></i> Données
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3 mb-md-0">
+                            <h6>Exporter mes données</h6>
+                            <p class="small text-muted">Téléchargez toutes vos données en format JSON</p>
+                            <button class="btn btn-sm btn-outline-primary">
+                                <i class="bi bi-download me-2"></i> Exporter
+                            </button>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-danger">Zone de danger</h6>
+                            <p class="small text-muted">Supprimez votre compte et toutes vos données</p>
+                            <button class="btn btn-sm btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deleteAccountModal">
+                                <i class="bi bi-trash me-2"></i> Supprimer le compte
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Account Modal -->
+<div class="modal fade" id="deleteAccountModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content border-danger">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i> Supprimer le compte</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p class="text-danger fw-bold mb-3">⚠️ Cette action est irréversible !</p>
+                <p>Tous vos documents, clients et données seront supprimés de manière permanente.</p>
+                <div class="form-group mb-3">
+                    <label class="form-label">Confirmez en tapant votre email : <strong>{{ user.email }}</strong></label>
+                    <input type="email" class="form-control" placeholder="Entrez votre email">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <button type="button" class="btn btn-danger">Supprimer définitivement</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.theme-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+        // Vous pouvez ajouter la logique de sauvegarde ici
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,244 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Paiements - {{ document.number }} - Ouma Traiteur{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row mb-3">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Accueil</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_document_index') }}">Documents</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_document_show', {id: document.id}) }}">{{ document.number }}</a></li>
+                    <li class="breadcrumb-item active">Paiements</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1><i class="bi bi-cash-coin"></i> Paiements</h1>
+            <p class="text-muted">{{ document.typeLabel }} {{ document.number }} - {{ document.client.name }}</p>
+        </div>
+    </div>
+
+    {# Résumé financier #}
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-md-4">
+            <div class="card border-primary">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Montant Total</h6>
+                    <h3 class="mb-0 text-primary">{{ document.formattedTotalTtc }} MRU</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <div class="card border-success">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Montant Payé</h6>
+                    <h3 class="mb-0 text-success">{{ totalPaid|number_format(0, ',', ' ') }} MRU</h3>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-4">
+            <div class="card border-{{ remainingAmount > 0 ? 'warning' : 'success' }}">
+                <div class="card-body">
+                    <h6 class="text-muted mb-2">Reste à Payer</h6>
+                    <h3 class="mb-0 text-{{ remainingAmount > 0 ? 'warning' : 'success' }}">
+                        {{ remainingAmount|number_format(0, ',', ' ') }} MRU
+                    </h3>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Bouton ajouter paiement #}
+    <div class="row mb-3">
+        <div class="col-12">
+            {% if remainingAmount > 0 %}
+                <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addPaymentModal">
+                    <i class="bi bi-plus-circle"></i> Ajouter un paiement
+                </button>
+            {% else %}
+                <div class="alert alert-success">
+                    <i class="bi bi-check-circle"></i> Cette facture est entièrement payée.
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {# Liste des paiements #}
+    <div class="card">
+        <div class="card-header bg-primary text-white">
+            <h5 class="mb-0">
+                <i class="bi bi-list-ul"></i> Liste des paiements ({{ payments|length }})
+            </h5>
+        </div>
+        <div class="card-body p-0">
+            {% if payments is empty %}
+                <div class="text-center text-muted py-5">
+                    <i class="bi bi-inbox" style="font-size: 3rem;"></i><br>
+                    Aucun paiement enregistré
+                </div>
+            {% else %}
+                {# Version Desktop #}
+                <div class="table-responsive d-none d-md-block">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Date</th>
+                                <th>Montant</th>
+                                <th>Mode</th>
+                                <th>Référence</th>
+                                <th>Statut</th>
+                                <th>Notes</th>
+                                <th class="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in payments %}
+                                <tr>
+                                    <td>{{ payment.datePaiement|date('d/m/Y') }}</td>
+                                    <td><strong>{{ payment.formattedMontant }} MRU</strong></td>
+                                    <td>
+                                        <span class="badge bg-secondary">
+                                            {{ payment.modePaiementLabel }}
+                                        </span>
+                                    </td>
+                                    <td>{{ payment.reference ?? '-' }}</td>
+                                    <td>
+                                        <span class="badge {{ payment.statutBadgeClass }}">
+                                            {{ payment.statutLabel }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if payment.notes %}
+                                            {{ payment.notes|slice(0, 50) }}{% if payment.notes|length > 50 %}...{% endif %}
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-center">
+                                        <form method="post" action="{{ path('app_payment_delete', {id: payment.id}) }}"
+                                              onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce paiement ?');"
+                                              class="d-inline">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ payment.id) }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                {# Version Mobile #}
+                <div class="d-md-none p-3">
+                    {% for payment in payments %}
+                        <div class="card mb-2">
+                            <div class="card-body p-2">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <strong class="text-success">{{ payment.formattedMontant }} MRU</strong>
+                                    <span class="badge {{ payment.statutBadgeClass }}">
+                                        {{ payment.statutLabel }}
+                                    </span>
+                                </div>
+                                <p class="mb-1 small">
+                                    <i class="bi bi-calendar"></i> {{ payment.datePaiement|date('d/m/Y') }}<br>
+                                    <i class="bi bi-credit-card"></i> {{ payment.modePaiementLabel }}
+                                </p>
+                                {% if payment.reference %}
+                                    <p class="mb-1 small text-muted">Réf: {{ payment.reference }}</p>
+                                {% endif %}
+                                <div class="text-end">
+                                    <form method="post" action="{{ path('app_payment_delete', {id: payment.id}) }}"
+                                          onsubmit="return confirm('Supprimer ce paiement ?');"
+                                          class="d-inline">
+                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ payment.id) }}">
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                                            <i class="bi bi-trash"></i> Supprimer
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{# Modal Ajouter Paiement #}
+<div class="modal fade" id="addPaymentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{{ path('app_payment_add') }}">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Ajouter un paiement</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="payment[document]" value="{{ document.id }}">
+
+                    <div class="mb-3">
+                        <label class="form-label">Date de paiement *</label>
+                        <input type="date" name="payment[datePaiement]" class="form-control"
+                               value="{{ "now"|date('Y-m-d') }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Montant *</label>
+                        <input type="number" name="payment[montant]" class="form-control"
+                               step="0.01" min="0" max="{{ remainingAmount }}"
+                               value="{{ remainingAmount }}" required>
+                        <small class="text-muted">Maximum: {{ remainingAmount|number_format(0, ',', ' ') }} MRU</small>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Mode de paiement *</label>
+                        <select name="payment[modePaiement]" class="form-select" required>
+                            <option value="especes">Espèces</option>
+                            <option value="cheque">Chèque</option>
+                            <option value="virement">Virement bancaire</option>
+                            <option value="carte">Carte bancaire</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Statut *</label>
+                        <select name="payment[statutPaiement]" class="form-select" required>
+                            <option value="recu" selected>Reçu</option>
+                            <option value="en_attente">En attente</option>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Référence</label>
+                        <input type="text" name="payment[reference]" class="form-control"
+                               placeholder="Numéro de chèque, référence...">
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Notes</label>
+                        <textarea name="payment[notes]" class="form-control" rows="2"
+                                  placeholder="Notes complémentaires..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-plus-circle"></i> Ajouter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

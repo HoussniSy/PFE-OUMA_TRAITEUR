@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fr" data-bs-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mot de passe oublié - Ouma Traiteur</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            background: #0F1117;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            position: relative;
+            overflow: hidden;
+        }
+
+        body::before, body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.25;
+            z-index: 0;
+        }
+
+        body::before {
+            width: 350px; height: 350px;
+            background: #4A90E2;
+            top: -100px; right: -100px;
+            animation: floatOrb 8s ease-in-out infinite;
+        }
+
+        body::after {
+            width: 300px; height: 300px;
+            background: #F5A623;
+            bottom: -80px; left: -80px;
+            animation: floatOrb 10s ease-in-out infinite reverse;
+        }
+
+        @keyframes floatOrb {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -30px) scale(1.05); }
+            66% { transform: translate(-20px, 20px) scale(0.95); }
+        }
+
+        .reset-card {
+            max-width: 450px;
+            width: 100%;
+            background: rgba(26, 29, 39, 0.85);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.06);
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            position: relative;
+            z-index: 1;
+            animation: cardAppear 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        @keyframes cardAppear {
+            from { opacity: 0; transform: translateY(30px) scale(0.96); }
+            to   { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .reset-header {
+            background: linear-gradient(135deg, #4A90E2 0%, #6C5CE7 50%, #FF6F61 100%);
+            color: white;
+            padding: 2.5rem 2rem 2rem;
+            text-align: center;
+            position: relative;
+        }
+
+        .reset-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        }
+
+        .reset-header i { font-size: 3rem; filter: drop-shadow(0 2px 8px rgba(0,0,0,0.2)); }
+        .reset-header h1 { font-size: 1.75rem; margin: 0.5rem 0 0; font-weight: 800; letter-spacing: -0.02em; }
+        .reset-header p { opacity: 0.85; font-size: 0.95rem; }
+
+        .reset-body { padding: 2rem; }
+
+        .form-label { color: #8B92A5; font-size: 0.875rem; font-weight: 500; }
+
+        .input-group-text {
+            background-color: #242836;
+            border-color: #2E3345;
+            color: #8B92A5;
+            border-right: none;
+        }
+
+        .form-control {
+            background-color: #242836;
+            border-color: #2E3345;
+            color: #E8ECF4;
+            border-left: none;
+            transition: all 0.3s ease;
+        }
+
+        .form-control::placeholder { color: #555B6E; }
+
+        .form-control:focus {
+            border-color: #4A90E2;
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+            background-color: #2A2F40;
+        }
+
+        .form-control:focus + .input-group-text,
+        .input-group:focus-within .input-group-text {
+            border-color: #4A90E2;
+        }
+
+        .btn-reset {
+            background: linear-gradient(135deg, #4A90E2 0%, #6C5CE7 100%);
+            border: none;
+            padding: 0.85rem;
+            font-weight: 600;
+            font-size: 1rem;
+            border-radius: 12px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 16px rgba(74, 144, 226, 0.3);
+        }
+
+        .btn-reset:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 28px rgba(74, 144, 226, 0.45);
+        }
+
+        .btn-reset:active { transform: translateY(0) scale(0.98); }
+
+        a { color: #4A90E2; transition: color 0.2s; }
+        a:hover { color: #6AABF5; }
+
+        .security-badge { color: #555B6E; font-size: 0.8rem; }
+        .text-muted { color: #8B92A5 !important; }
+
+        @media (max-width: 576px) {
+            .reset-header h1 { font-size: 1.5rem; }
+            .reset-body { padding: 1.5rem; }
+            body::before, body::after { opacity: 0.12; }
+        }
+    </style>
+</head>
+<body>
+    <div class="reset-card">
+        <div class="reset-header">
+            <i class="bi bi-key-fill"></i>
+            <h1>Mot de passe oublié ?</h1>
+            <p class="mb-0">Ouma Traiteur</p>
+        </div>
+
+        <div class="reset-body">
+            {% for message in app.flashes('error') %}
+                <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i> {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+
+            <p class="text-muted text-center mb-4">
+                Entrez votre adresse email et nous vous enverrons un lien pour réinitialiser votre mot de passe.
+            </p>
+
+            <form method="post" action="{{ path('app_forgot_password_send') }}">
+                <div class="mb-3">
+                    <label for="email" class="form-label">
+                        <i class="bi bi-envelope"></i> Adresse email
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text">
+                            <i class="bi bi-envelope"></i>
+                        </span>
+                        <input type="email"
+                               class="form-control"
+                               id="email"
+                               name="email"
+                               placeholder="votre@email.com"
+                               required
+                               autofocus>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-reset btn-primary w-100 mb-3">
+                    <i class="bi bi-send"></i> Envoyer le lien
+                </button>
+
+                <div class="text-center">
+                    <a href="{{ path('app_login') }}" class="text-decoration-none">
+                        <i class="bi bi-arrow-left"></i> Retour à la connexion
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <div class="text-center pb-3 px-3">
+            <small class="security-badge">
+                <i class="bi bi-shield-check"></i> Lien sécurisé valable 1 heure
+            </small>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

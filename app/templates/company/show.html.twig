@@ -1,0 +1,186 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Entreprise - Ouma Traiteur{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12 col-md-8">
+            <h1><i class="bi bi-building"></i> Informations de l'entreprise</h1>
+        </div>
+        <div class="col-12 col-md-4 text-md-end mt-2 mt-md-0">
+            {% if is_granted('ROLE_ADMIN') %}
+                <a href="{{ path('app_company_edit') }}" class="btn btn-primary">
+                    <i class="bi bi-pencil"></i> Modifier
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12 col-lg-8">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-info-circle"></i> Informations générales
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if company.logo %}
+                        <div class="mb-4 text-center">
+                            <img src="{{ asset('uploads/logos/' ~ company.logo) }}"
+                                 alt="{{ company.name }}"
+                                 class="img-thumbnail"
+                                 style="max-height: 150px;">
+                        </div>
+                    {% endif %}
+
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="text-muted small">Nom (Français)</label>
+                            <h4 class="mb-0">{{ company.name }}</h4>
+                        </div>
+
+                        {% if company.nameArabic %}
+                            <div class="col-12">
+                                <label class="text-muted small">Nom (Arabe)</label>
+                                <h4 class="mb-0" style="direction: rtl; text-align: right;">
+                                    {{ company.nameArabic }}
+                                </h4>
+                            </div>
+                        {% endif %}
+
+                        <div class="col-12 col-md-6">
+                            <label class="text-muted small">Numéro d'enregistrement</label>
+                            <p class="mb-0 fw-bold">{{ company.registrationNumber }}</p>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="text-muted small">NIF</label>
+                            <p class="mb-0 fw-bold">{{ company.nif }}</p>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="text-muted small">Téléphone</label>
+                            <p class="mb-0">
+                                <i class="bi bi-telephone text-primary"></i>
+                                <a href="tel:{{ company.phone }}" class="text-decoration-none">
+                                    {{ company.phone }}
+                                </a>
+                            </p>
+                        </div>
+
+                        {% if company.address %}
+                            <div class="col-12 col-md-6">
+                                <label class="text-muted small">Adresse</label>
+                                <p class="mb-0">
+                                    <i class="bi bi-geo-alt text-danger"></i>
+                                    {{ company.address }}
+                                </p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-bank"></i> Informations bancaires
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="text-muted small">Banque</label>
+                            <p class="mb-0 fw-bold">{{ company.bankName }}</p>
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="text-muted small">Numéro de compte</label>
+                            <p class="mb-0 fw-bold">{{ company.bankAccount }}</p>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-3 mb-0">
+                        <i class="bi bi-info-circle"></i>
+                        Ces informations apparaissent sur tous vos documents (devis et factures).
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mt-3">
+                <div class="card-header bg-info text-white">
+                    <h5 class="mb-0">
+                        <i class="bi bi-sliders"></i> Paramètres par défaut
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-4">
+                            <label class="text-muted small">TVA par défaut</label>
+                            <p class="mb-0 fw-bold">{{ company.defaultTaxRate }}%</p>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="text-muted small">Délai de paiement</label>
+                            <p class="mb-0 fw-bold">{{ company.defaultPaymentTerms }} jours</p>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="text-muted small">Devise</label>
+                            <p class="mb-0 fw-bold">{{ company.defaultCurrency }}</p>
+                        </div>
+                    </div>
+
+                    <div class="alert alert-info mt-3 mb-0">
+                        <i class="bi bi-info-circle"></i>
+                        Ces valeurs sont utilisées par défaut lors de la création de nouveaux documents.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {# Aperçu #}
+        <div class="col-12 col-lg-4 mt-3 mt-lg-0">
+            <div class="card bg-light">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-eye"></i> Aperçu sur les documents
+                    </h5>
+                    <p class="small text-muted">
+                        Voici comment vos informations apparaissent sur les documents :
+                    </p>
+
+                    <div class="border rounded p-3 bg-white">
+                        {% if company.logo %}
+                            <img src="{{ asset('uploads/logos/' ~ company.logo) }}"
+                                 alt="Logo"
+                                 style="max-height: 60px;"
+                                 class="mb-2">
+                        {% endif %}
+                        <h6 class="text-success mb-1">{{ company.name }}</h6>
+                        {% if company.nameArabic %}
+                            <p class="mb-1 small text-success" style="direction: rtl; text-align: right;">
+                                {{ company.nameArabic }}
+                            </p>
+                        {% endif %}
+                        <p class="small text-muted mb-0">
+                            N° Registre: {{ company.registrationNumber }}<br>
+                            NIF: {{ company.nif }}<br>
+                            Tél: {{ company.phone }}
+                        </p>
+
+                        <hr>
+
+                        <div class="bg-light p-2 rounded">
+                            <small class="d-block">
+                                <strong>Informations bancaires :</strong><br>
+                                {{ company.bankName }} – {{ company.bankAccount }}
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

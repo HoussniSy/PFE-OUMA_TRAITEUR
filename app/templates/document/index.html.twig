@@ -1,0 +1,470 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Documents - Ouma Traiteur{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .filter-card {
+        background: #f8f9fa;
+        border-radius: 10px;
+        padding: 1rem;
+    }
+
+    .filter-toggle {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .filter-toggle:hover {
+        background-color: #e9ecef;
+    }
+
+    .period-shortcut {
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .period-shortcut:hover {
+        background-color: #00a651;
+        color: white;
+        border-color: #00a651;
+    }
+
+    .period-shortcut.active {
+        background-color: #00a651;
+        color: white;
+        border-color: #00a651;
+    }
+
+    @media (max-width: 768px) {
+        .table-responsive {
+            font-size: 0.875rem;
+        }
+        .btn-sm {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+        }
+        .document-card {
+            margin-bottom: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1><i class="bi bi-file-earmark-text"></i> Documents</h1>
+            <p class="text-muted">Gestion des devis et factures</p>
+        </div>
+    </div>
+
+    {# Panneau de filtres avancés #}
+    <div class="card mb-4">
+        <div class="card-header filter-toggle" data-bs-toggle="collapse" data-bs-target="#advancedFilters">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <i class="bi bi-funnel"></i>
+                    <strong>Filtres avancés</strong>
+                    {% if activeFiltersCount > 0 %}
+                        <span class="badge bg-success ms-2">{{ activeFiltersCount }}</span>
+                    {% endif %}
+                </div>
+                <i class="bi bi-chevron-down"></i>
+            </div>
+            {% if filterSummary %}
+                <small class="text-muted d-block mt-1">{{ filterSummary }}</small>
+            {% endif %}
+        </div>
+
+        <div id="advancedFilters" class="collapse {% if activeFiltersCount > 0 %}show{% endif %}">
+            <div class="card-body">
+                <form method="get" id="filterForm">
+                    {# Filtres de base #}
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-3">
+                            <label class="form-label small">Type</label>
+                            <select name="type" class="form-select form-select-sm">
+                                <option value="all">Tous</option>
+                                <option value="quote" {{ filters.type|default('all') == 'quote' ? 'selected' }}>Devis</option>
+                                <option value="invoice" {{ filters.type|default('all') == 'invoice' ? 'selected' }}>Factures</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label small">Statut</label>
+                            <select name="status" class="form-select form-select-sm">
+                                <option value="all">Tous</option>
+                                <option value="draft" {{ filters.status|default('all') == 'draft' ? 'selected' }}>Brouillon</option>
+                                <option value="sent" {{ filters.status|default('all') == 'sent' ? 'selected' }}>Envoyé</option>
+                                <option value="partially_paid" {{ filters.status|default('all') == 'partially_paid' ? 'selected' }}>Partiellement payé</option>
+                                <option value="paid" {{ filters.status|default('all') == 'paid' ? 'selected' }}>Payé</option>
+                                <option value="cancelled" {{ filters.status|default('all') == 'cancelled' ? 'selected' }}>Annulé</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label small">Client</label>
+                            <select name="client_id" class="form-select form-select-sm">
+                                <option value="all">Tous les clients</option>
+                                {% for client in clients %}
+                                    <option value="{{ client.id }}" {{ filters.client_id|default('all') == client.id ? 'selected' }}>
+                                        {{ client.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label small">Recherche</label>
+                            <input type="text" name="search" class="form-control form-control-sm"
+                                   placeholder="Numéro ou client..." value="{{ filters.search|default('') }}">
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    {# Période #}
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Période</strong></label>
+                        <div class="row g-2 mb-2">
+                            {% for key, label in periodShortcuts %}
+                                <div class="col-auto">
+                                    <button type="button"
+                                            class="btn btn-sm btn-outline-secondary period-shortcut {% if filters.period_shortcut|default('') == key %}active{% endif %}"
+                                            data-shortcut="{{ key }}">
+                                        {{ label }}
+                                    </button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="period_shortcut" id="period_shortcut" value="{{ filters.period_shortcut|default('') }}">
+
+                        <div class="row g-2 mt-2">
+                            <div class="col-md-6">
+                                <label class="form-label small">Date début</label>
+                                <input type="date" name="date_from" class="form-control form-control-sm"
+                                       value="{{ filters.date_from|default('') }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small">Date fin</label>
+                                <input type="date" name="date_to" class="form-control form-control-sm"
+                                       value="{{ filters.date_to|default('') }}">
+                            </div>
+                        </div>
+                    </div>
+
+                    <hr>
+
+                    {# Montant #}
+                    <div class="mb-3">
+                        <label class="form-label"><strong>Montant TTC</strong></label>
+                        <div class="row g-2">
+                            <div class="col-md-6">
+                                <label class="form-label small">Minimum (MRU)</label>
+                                <input type="number" name="amount_min" class="form-control form-control-sm"
+                                       placeholder="Ex: 10000" value="{{ filters.amount_min|default('') }}" min="0">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small">Maximum (MRU)</label>
+                                <input type="number" name="amount_max" class="form-control form-control-sm"
+                                       placeholder="Ex: 100000" value="{{ filters.amount_max|default('') }}" min="0">
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Messages de validation #}
+                    {% if validationErrors %}
+                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <i class="bi bi-exclamation-triangle"></i>
+                            <ul class="mb-0">
+                                {% for error in validationErrors %}
+                                    <li>{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endif %}
+
+                    {# Boutons d'action #}
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-search"></i> Appliquer les filtres
+                        </button>
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#saveFilterModal">
+                            <i class="bi bi-save"></i> Sauvegarder ce filtre
+                        </button>
+                        <a href="{{ path('app_document_index') }}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Réinitialiser
+                        </a>
+                        {% if savedFilters|length > 0 %}
+                            <div class="dropdown">
+                                <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                                    <i class="bi bi-star"></i> Mes filtres favoris ({{ savedFilters|length }})
+                                </button>
+                                <ul class="dropdown-menu">
+                                    {% for savedFilter in savedFilters %}
+                                        <li>
+                                            <a class="dropdown-item d-flex justify-content-between align-items-center"
+                                               href="{{ path('app_saved_filter_load', {id: savedFilter.id}) }}">
+                                                <span>{{ savedFilter.name }}</span>
+                                                <form method="post" action="{{ path('app_saved_filter_delete', {id: savedFilter.id}) }}"
+                                                      onsubmit="return confirm('Supprimer ce filtre ?')" class="d-inline">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ savedFilter.id) }}">
+                                                    <button type="submit" class="btn btn-sm btn-link text-danger p-0" title="Supprimer">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {# Actions et exports #}
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+        <div>
+            <span class="text-muted">
+                <strong>{{ documents|length }}</strong> document(s) trouvé(s) sur <strong>{{ totalDocuments }}</strong>
+            </span>
+        </div>
+        <div class="d-flex gap-2 flex-wrap">
+            {# Boutons export #}
+            <a href="{{ path('app_document_export_excel', filters) }}" class="btn btn-sm btn-success">
+                <i class="bi bi-file-earmark-excel"></i> Excel
+            </a>
+            <a href="{{ path('app_document_export_csv', filters) }}" class="btn btn-sm btn-outline-success">
+                <i class="bi bi-filetype-csv"></i> CSV
+            </a>
+
+            {# Boutons création #}
+            <div class="btn-group" role="group">
+                <a href="{{ path('app_document_new', {type: 'quote'}) }}" class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-file-earmark-plus"></i> Nouveau devis
+                </a>
+                <a href="{{ path('app_document_new', {type: 'invoice'}) }}" class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-receipt"></i> Nouvelle facture
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {# Version Desktop - Tableau #}
+    <div class="card d-none d-md-block">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Type</th>
+                        <th>Numéro</th>
+                        <th>Client</th>
+                        <th>Date</th>
+                        <th class="text-end">Montant HT</th>
+                        <th class="text-end">Montant TTC</th>
+                        <th class="text-end">Paiement</th>
+                        <th>Statut</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for document in documents %}
+                        <tr>
+                            <td>
+                                <span class="badge {{ document.type == 'quote' ? 'bg-info' : 'bg-success' }}">
+                                    {{ document.typeLabel }}
+                                </span>
+                            </td>
+                            <td><strong>{{ document.number }}</strong></td>
+                            <td>{{ document.client.name }}</td>
+                            <td>{{ document.date|date('d/m/Y') }}</td>
+                            <td class="text-end">{{ document.totalHt|number_format(0, ',', ' ') }} MRU</td>
+                            <td class="text-end"><strong>{{ document.formattedTotalTtc }} MRU</strong></td>
+                            <td class="text-end">
+                                {% if document.type == constant('App\\Entity\\Document::TYPE_INVOICE') %}
+                                    {% set totalPaid = document.totalPaid %}
+                                    {% set remaining = document.remainingAmount %}
+                                    {% if totalPaid > 0 %}
+                                        <small class="text-success">
+                                            <i class="bi bi-check-circle"></i> {{ totalPaid|number_format(0, ',', ' ') }} MRU
+                                        </small>
+                                        {% if remaining > 0 %}
+                                            <br><small class="text-warning">Reste: {{ remaining|number_format(0, ',', ' ') }}</small>
+                                        {% endif %}
+                                    {% else %}
+                                        <small class="text-muted">Aucun</small>
+                                    {% endif %}
+                                {% else %}
+                                    <small class="text-muted">-</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge {{ document.statusBadgeClass }}">
+                                    {{ document.statusLabel }}
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <div class="btn-group btn-group-sm" role="group">
+                                    <a href="{{ path('app_document_show', {id: document.id}) }}"
+                                       class="btn btn-outline-primary" title="Voir">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ path('app_document_edit', {id: document.id}) }}"
+                                       class="btn btn-outline-secondary" title="Modifier">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <a href="{{ path('app_document_pdf', {id: document.id}) }}"
+                                       class="btn btn-outline-danger" title="PDF" target="_blank">
+                                        <i class="bi bi-file-pdf"></i>
+                                    </a>
+                                    <a href="{{ path('app_document_export_detail_excel', {id: document.id}) }}"
+                                        class="btn btn-outline-success" title="Exporter le détail">
+                                         <i class="bi bi-file-earmark-excel"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-5">
+                                <i class="bi bi-inbox" style="font-size: 3rem;"></i><br>
+                                Aucun document trouvé
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    {# Version Mobile - Cartes #}
+    <div class="d-md-none">
+        {% for document in documents %}
+            <div class="card document-card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <span class="badge {{ document.type == 'quote' ? 'bg-info' : 'bg-success' }}">
+                                {{ document.typeLabel }}
+                            </span>
+                            <span class="badge {{ document.statusBadgeClass }}">
+                                {{ document.statusLabel }}
+                            </span>
+                        </div>
+                        <h6 class="mb-0">{{ document.number }}</h6>
+                    </div>
+
+                    <h6 class="mb-1">{{ document.client.name }}</h6>
+                    <p class="text-muted small mb-2">
+                        <i class="bi bi-calendar"></i> {{ document.date|date('d/m/Y') }}
+                    </p>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <strong class="text-success">{{ document.formattedTotalTtc }} MRU</strong>
+                        <div class="btn-group btn-group-sm">
+                            <a href="{{ path('app_document_show', {id: document.id}) }}" class="btn btn-outline-primary">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{{ path('app_document_edit', {id: document.id}) }}" class="btn btn-outline-secondary">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{{ path('app_document_pdf', {id: document.id}) }}" class="btn btn-outline-danger" target="_blank">
+                                <i class="bi bi-file-pdf"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-inbox" style="font-size: 3rem;"></i><br>
+                Aucun document trouvé
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+{# Modal pour sauvegarder un filtre #}
+<div class="modal fade" id="saveFilterModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{{ path('app_saved_filter_save') }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Sauvegarder ce filtre</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" name="_token" value="{{ csrf_token('save_filter') }}">
+                    <input type="hidden" name="page" value="document">
+                    <input type="hidden" name="filters" value="{{ filters|json_encode|e('html_attr') }}">
+
+                    <div class="mb-3">
+                        <label for="filter_name" class="form-label">Nom du filtre</label>
+                        <input type="text" class="form-control" id="filter_name" name="name"
+                               placeholder="Ex: Factures payées janvier 2026" required>
+                        <div class="form-text">Choisissez un nom descriptif pour retrouver facilement ce filtre</div>
+                    </div>
+
+                    {% if filterSummary %}
+                        <div class="alert alert-info">
+                            <strong>Filtres actuels :</strong><br>
+                            {{ filterSummary }}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-save"></i> Sauvegarder
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block javascripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gestion des raccourcis de période
+    const periodButtons = document.querySelectorAll('.period-shortcut');
+    const periodInput = document.getElementById('period_shortcut');
+    const dateFromInput = document.querySelector('input[name="date_from"]');
+    const dateToInput = document.querySelector('input[name="date_to"]');
+
+    periodButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const shortcut = this.dataset.shortcut;
+
+            // Désélectionner tous les boutons
+            periodButtons.forEach(btn => btn.classList.remove('active'));
+
+            // Activer le bouton cliqué
+            this.classList.add('active');
+
+            // Mettre à jour l'input caché
+            periodInput.value = shortcut;
+
+            // Effacer les dates personnalisées
+            dateFromInput.value = '';
+            dateToInput.value = '';
+        });
+    });
+
+    // Si l'utilisateur saisit des dates manuellement, désactiver les raccourcis
+    [dateFromInput, dateToInput].forEach(input => {
+        input.addEventListener('change', function() {
+            periodButtons.forEach(btn => btn.classList.remove('active'));
+            periodInput.value = '';
+        });
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,53 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: traiteur_db_pfe
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_DATABASE: app
+      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+
+  phpmyadmin:
+    image: phpmyadmin
+    ports:
+      - 2002:80
+    depends_on:
+      - db
+    environment:
+      - PMA_HOST=traiteur_db_pfe
+      - UPLOAD_LIMIT=64M
+
+
+  maildev:
+    image: maildev/maildev
+    container_name: traiteur_maildev
+    ports:
+      - "1080:1080"  # Interface web
+      - "1025:1025"  # SMTP
+
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: dev
+    container_name: traiteur_app
+    volumes:
+      - ./app:/app
+    ports:
+      - "8001:8080"   # http://localhost:8080
+    env_file:
+      - .env.docker
+    environment:
+      APP_ENV: dev
+      SERVER_NAME: :8080
+      CADDY_MERCURE: "off"
+      XDEBUG_MODE: "${XDEBUG_MODE:-off}"  # active avec XDEBUG_MODE=debug
+    depends_on:
+      - db
+volumes:
+  dbdata:

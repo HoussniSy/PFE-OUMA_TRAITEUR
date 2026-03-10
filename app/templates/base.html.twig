@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="fr" data-controller="dark-mode">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Ouma Traiteur{% endblock %}</title>
+
+    {# Bootstrap 5.3 CSS #}
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    {# Bootstrap Icons #}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <style>
+        /* ── Design tokens ── */
+        :root {
+            --ouma-primary: #4A90E2;
+            --ouma-primary-dark: #3A7BC8;
+            --ouma-secondary: #FF6F61;
+            --ouma-accent: #F5A623;
+            --ouma-gradient: linear-gradient(135deg, #4A90E2 0%, #6C5CE7 50%, #FF6F61 100%);
+            --ouma-gradient-subtle: linear-gradient(135deg, #4A90E2 0%, #5B8DEF 100%);
+            /* Legacy compat */
+            --ouma-green: #4A90E2;
+            --ouma-dark-green: #3A7BC8;
+        }
+
+        /* ── Base layout ── */
+        body {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+        }
+
+        /* ── Navbar – gradient ── */
+        .navbar {
+            background: var(--ouma-gradient) !important;
+            box-shadow: 0 4px 20px rgba(74, 144, 226, 0.3);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-link {
+            color: rgba(255,255,255,0.9) !important;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem !important;
+        }
+
+        .nav-link:hover {
+            color: white !important;
+            background-color: rgba(255,255,255,0.15);
+            transform: translateY(-1px);
+        }
+
+        .dropdown-menu {
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+            border-radius: 12px;
+            backdrop-filter: blur(20px);
+            animation: fadeInDown 0.2s ease;
+        }
+
+        /* ── Main content ── */
+        main {
+            flex: 1;
+            padding: 2rem 0;
+        }
+
+        /* ── Footer ── */
+        footer {
+            background-color: #1A1D27;
+            padding: 1.5rem 0;
+            margin-top: auto;
+            border-top: 1px solid #2E3345;
+            color: #8B92A5;
+        }
+
+        /* ── Buttons ── */
+        .btn-ouma-primary {
+            background: var(--ouma-gradient-subtle);
+            border: none;
+            color: white;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(74, 144, 226, 0.3);
+        }
+
+        .btn-ouma-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 144, 226, 0.4);
+            color: white;
+        }
+
+        .btn {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 8px;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .btn:active {
+            transform: translateY(0) scale(0.98);
+        }
+
+        /* ── Alerts ── */
+        .alert {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+            backdrop-filter: blur(10px);
+        }
+
+        /* ── Cards – glassmorphism ── */
+        .card {
+            border: 1px solid rgba(255,255,255,0.06);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+            border-radius: 14px;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(74, 144, 226, 0.15);
+        }
+
+        /* ── Animations ── */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .card, .stat-card, .widget-container {
+            animation: fadeInUp 0.4s ease both;
+        }
+
+        .widget-container:nth-child(1) { animation-delay: 0.05s; }
+        .widget-container:nth-child(2) { animation-delay: 0.1s; }
+        .widget-container:nth-child(3) { animation-delay: 0.15s; }
+        .widget-container:nth-child(4) { animation-delay: 0.2s; }
+
+        /* ── Mobile optimizations ── */
+        @media (max-width: 768px) {
+            main { padding: 1rem 0; }
+            .container { padding-left: 15px; padding-right: 15px; }
+            h1 { font-size: 1.75rem; }
+            h2 { font-size: 1.5rem; }
+            .btn { padding: 0.5rem 1rem; font-size: 0.95rem; }
+            .table-responsive { font-size: 0.9rem; }
+        }
+
+        /* ── Print styles ── */
+        @media print {
+            .navbar, footer, .btn, .no-print { display: none !important; }
+        }
+
+        /* ═══════════════════════════════════════
+           Dark mode overrides (default)
+           ═══════════════════════════════════════ */
+        [data-bs-theme="dark"] body {
+            background-color: #0F1117;
+        }
+
+        [data-bs-theme="dark"] .navbar {
+            background: var(--ouma-gradient) !important;
+            box-shadow: 0 4px 24px rgba(74, 144, 226, 0.2);
+        }
+
+        [data-bs-theme="dark"] footer {
+            background-color: #0D0F14;
+            border-top-color: #2E3345;
+            color: #8B92A5;
+        }
+
+        [data-bs-theme="dark"] .stat-card {
+            background-color: #1A1D27;
+            border-color: #2E3345;
+        }
+
+        [data-bs-theme="dark"] .card {
+            background-color: #1A1D27;
+            border-color: #2E3345;
+        }
+
+        [data-bs-theme="dark"] .card:hover {
+            box-shadow: 0 8px 30px rgba(74, 144, 226, 0.12);
+            border-color: rgba(74, 144, 226, 0.2);
+        }
+
+        [data-bs-theme="dark"] .table {
+            --bs-table-bg: #1A1D27;
+            --bs-table-color: #E8ECF4;
+        }
+
+        [data-bs-theme="dark"] .table th {
+            background-color: #242836 !important;
+            color: #E8ECF4;
+            border-bottom-color: #2E3345;
+        }
+
+        [data-bs-theme="dark"] .table tr:nth-child(even) {
+            background-color: #1E2130;
+        }
+
+        [data-bs-theme="dark"] .table tr:hover {
+            background-color: #252940;
+        }
+
+        [data-bs-theme="dark"] .dropdown-menu {
+            background-color: #1A1D27;
+            border-color: #2E3345;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+        }
+
+        [data-bs-theme="dark"] .dropdown-item {
+            color: #E8ECF4;
+        }
+
+        [data-bs-theme="dark"] .dropdown-item:hover {
+            background-color: #242836;
+            color: #fff;
+        }
+
+        [data-bs-theme="dark"] .list-group-item {
+            background-color: #1A1D27;
+            border-color: #2E3345;
+            color: #E8ECF4;
+        }
+
+        [data-bs-theme="dark"] .alert {
+            box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+        }
+
+        [data-bs-theme="dark"] .btn-outline-primary { border-color: rgba(74, 144, 226, 0.4); color: #4A90E2; }
+        [data-bs-theme="dark"] .btn-outline-primary:hover { background-color: rgba(74, 144, 226, 0.15); color: #6AABF5; }
+        [data-bs-theme="dark"] .btn-outline-success { border-color: rgba(39, 174, 96, 0.4); color: #27AE60; }
+        [data-bs-theme="dark"] .btn-outline-success:hover { background-color: rgba(39, 174, 96, 0.15); color: #2ECC71; }
+        [data-bs-theme="dark"] .btn-outline-info { border-color: rgba(74, 144, 226, 0.4); color: #4A90E2; }
+        [data-bs-theme="dark"] .btn-outline-info:hover { background-color: rgba(74, 144, 226, 0.15); color: #6AABF5; }
+        [data-bs-theme="dark"] .btn-outline-secondary { border-color: rgba(139, 146, 165, 0.4); color: #8B92A5; }
+        [data-bs-theme="dark"] .btn-outline-secondary:hover { background-color: rgba(139, 146, 165, 0.15); color: #B0B6C5; }
+
+        [data-bs-theme="dark"] .form-control,
+        [data-bs-theme="dark"] .form-select {
+            background-color: #242836;
+            border-color: #2E3345;
+            color: #E8ECF4;
+        }
+
+        [data-bs-theme="dark"] .form-control:focus,
+        [data-bs-theme="dark"] .form-select:focus {
+            border-color: #4A90E2;
+            box-shadow: 0 0 0 0.2rem rgba(74, 144, 226, 0.25);
+        }
+
+        [data-bs-theme="dark"] .input-group-text {
+            background-color: #242836;
+            border-color: #2E3345;
+            color: #8B92A5;
+        }
+
+        [data-bs-theme="dark"] .text-muted {
+            color: #8B92A5 !important;
+        }
+
+        [data-bs-theme="dark"] .modal-content {
+            background-color: #1A1D27;
+            border-color: #2E3345;
+        }
+
+        /* ── Light mode adjustments ── */
+        [data-bs-theme="light"] body {
+            background-color: #F0F2F8;
+        }
+
+        [data-bs-theme="light"] footer {
+            background-color: #F0F2F8;
+            border-top-color: #E0E4ED;
+            color: #6B7280;
+        }
+
+        [data-bs-theme="light"] .card {
+            background-color: #ffffff;
+            border-color: #E0E4ED;
+        }
+    </style>
+
+    {% block stylesheets %}{% endblock %}
+</head>
+<body>
+    {# Navigation #}
+    {% if app.user %}
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="{{ path('app_dashboard') }}">
+                <i class="bi bi-cup-hot-fill"></i> Ouma Traiteur
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_dashboard') }}">
+                            <i class="bi bi-speedometer2"></i> Dashboard
+                        </a>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-file-earmark-text"></i> Documents
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ path('app_document_index') }}">
+                                <i class="bi bi-list-ul"></i> Tous les documents
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ path('app_document_new', {type: 'quote'}) }}">
+                                <i class="bi bi-file-earmark-plus"></i> Nouveau devis
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ path('app_document_new', {type: 'invoice'}) }}">
+                                <i class="bi bi-receipt"></i> Nouvelle facture
+                            </a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_client_index') }}">
+                            <i class="bi bi-people"></i> Clients
+                        </a>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-gear"></i> Gestion
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ path('app_service_category_index') }}">
+                                <i class="bi bi-tags"></i> Catégories de services
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ path('app_stock_index') }}">
+                                <i class="bi bi-box-seam"></i> Gestion des stocks
+                            </a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-chat-dots"></i> Communications
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ path('app_sms_index') }}">
+                                <i class="bi bi-phone"></i> SMS
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ path('app_sms_send') }}">
+                                <i class="bi bi-send"></i> Envoyer un SMS
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="{{ path('app_whatsapp_index') }}">
+                                <i class="bi bi-whatsapp"></i> WhatsApp
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ path('app_whatsapp_send') }}">
+                                <i class="bi bi-chat-text"></i> Envoyer un message
+                            </a></li>
+                            <li><a class="dropdown-item" href="{{ path('app_whatsapp_send_document') }}">
+                                <i class="bi bi-file-earmark-arrow-up"></i> Envoyer un document
+                            </a></li>
+                        </ul>
+                    </li>
+
+                    {% if is_granted('ROLE_COMPTABLE') %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_reports_index') }}">
+                            <i class="bi bi-bar-chart"></i> Rapports
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_COMPTABLE') %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_notification_index') }}">
+                            <i class="bi bi-bell"></i> Notifications
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_ADMIN') %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_user_index') }}">
+                            <i class="bi bi-people-fill"></i> Utilisateurs
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_email_template_index') }}">
+                            <i class="bi bi-envelope-paper"></i> Emails
+                        </a>
+                    </li>
+
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ path('app_company_show') }}">
+                            <i class="bi bi-building"></i> Entreprise
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+
+                <ul class="navbar-nav">
+                    {# Global Search #}
+                    <li class="nav-item me-3">
+                        <div class="d-flex" data-controller="global-search">
+                            <div class="input-group" style="width: 250px;">
+                                <span class="input-group-text bg-white border-0">
+                                    <i class="bi bi-search"></i>
+                                </span>
+                                <input type="text" 
+                                       class="form-control border-0" 
+                                       placeholder="Rechercher..." 
+                                       data-global-search-target="input"
+                                       data-action="input->global-search#search"
+                                       style="background-color: rgba(255,255,255,0.9);">
+                            </div>
+                            <div class="position-absolute mt-5 w-100" 
+                                 style="max-width: 250px; z-index: 1000; display: none;" 
+                                 data-global-search-target="resultsContainer">
+                                <div class="card shadow-sm" data-global-search-target="results"></div>
+                            </div>
+                        </div>
+                    </li>
+
+                    {# Dark Mode Toggle #}
+                    <li class="nav-item ms-2">
+                        <div class="form-check form-switch" style="margin-top: 0.5rem;">
+                            <input class="form-check-input" 
+                                   type="checkbox" 
+                                   id="darkModeToggle"
+                                   data-dark-mode-target="toggle"
+                                   data-action="change->dark-mode#toggle"
+                                   style="cursor: pointer;">
+                            <label class="form-check-label" for="darkModeToggle" title="Mode sombre">
+                                <i class="bi bi-moon-fill" style="color: white;"></i>
+                            </label>
+                        </div>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                            <img src="{{ app.user.avatarPath }}"
+                                 alt="{{ app.user.fullName }}"
+                                 class="rounded-circle me-2"
+                                 width="32"
+                                 height="32"
+                                 style="object-fit: cover;">
+                            {{ app.user.fullName }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li>
+                                <span class="dropdown-item-text text-muted small">
+                                    {% if is_granted('ROLE_ADMIN') %}
+                                        <i class="bi bi-shield-check"></i> Administrateur
+                                    {% elseif is_granted('ROLE_COMPTABLE') %}
+                                        <i class="bi bi-calculator"></i> Comptable
+                                    {% else %}
+                                        <i class="bi bi-person"></i> Utilisateur
+                                    {% endif %}
+                                </span>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_profile') }}">
+                                    <i class="bi bi-person-circle"></i> Mon profil
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_profile_change_password') }}">
+                                    <i class="bi bi-key-fill"></i> Changer mot de passe
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_user_settings') }}">
+                                    <i class="bi bi-gear"></i> Paramètres
+                                </a>
+                            </li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <a class="dropdown-item" href="{{ path('app_logout') }}">
+                                    <i class="bi bi-box-arrow-right"></i> Déconnexion
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+
+    {# Flash Messages #}
+    <div class="container mt-3">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label == 'error' ? 'danger' : label }} alert-dismissible fade show" role="alert">
+                    <i class="bi bi-{{ label == 'success' ? 'check-circle' : (label == 'error' ? 'exclamation-triangle' : 'info-circle') }}"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    {# Main Content #}
+    <main>
+        {% block body %}{% endblock %}
+    </main>
+
+    {# Footer #}
+    <footer class="text-center text-muted">
+        <div class="container">
+            <p class="mb-0">
+                &copy; {{ "now"|date("Y") }} Ouma Traiteur - Tous droits réservés
+            </p>
+            <p class="small mb-0">
+                <i class="bi bi-telephone"></i> 46246698 |
+                <i class="bi bi-geo-alt"></i> Nouakchott, Mauritanie
+            </p>
+        </div>
+    </footer>
+
+    {# Bootstrap 5.3 JS #}
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    {# Auto-dismiss alerts after 5 seconds #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const alerts = document.querySelectorAll('.alert:not(.alert-permanent)');
+            alerts.forEach(function(alert) {
+                setTimeout(function() {
+                    const bsAlert = new bootstrap.Alert(alert);
+                    bsAlert.close();
+                }, 5000);
+            });
+        });
+    </script>
+
+    {% block javascripts %}{% endblock %}
+</body>
+</html>

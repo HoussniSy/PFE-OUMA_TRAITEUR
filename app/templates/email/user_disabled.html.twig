@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compte désactivé</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #ffffff;
+            padding: 30px;
+            border: 1px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+        }
+        .warning-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 style="margin: 0;">⚠️ Notification importante</h1>
+    </div>
+
+    <div class="content">
+        <h2 style="color: #dc3545;">Bonjour {{ user.fullName }},</h2>
+
+        <p>Nous vous informons que votre compte Ouma Traiteur a été <strong>désactivé</strong> par un administrateur.</p>
+
+        <div class="warning-box">
+            <strong>⚠️ Conséquences :</strong><br>
+            Vous ne pouvez plus vous connecter à l'application tant que votre compte reste désactivé.
+        </div>
+
+        <h3>Informations :</h3>
+        <ul>
+            <li><strong>Email :</strong> {{ user.email }}</li>
+            <li><strong>Date :</strong> {{ 'now'|date('d/m/Y à H:i') }}</li>
+        </ul>
+
+        <p>Si vous pensez qu'il s'agit d'une erreur ou si vous avez des questions concernant la désactivation de votre compte, veuillez contacter votre administrateur système.</p>
+
+        <p style="margin-top: 30px;">
+            Cordialement,<br>
+            <strong>L'équipe Ouma Traiteur</strong>
+        </p>
+    </div>
+
+    <div class="footer">
+        © {{ 'now'|date('Y') }} Ouma Traiteur - Tous droits réservés<br>
+        📞 46246698 | 📍 Nouakchott, Mauritanie
+    </div>
+</body>
+</html>

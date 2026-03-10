@@ -1,0 +1,110 @@
+// Custom styles
+@import "~bootstrap/scss/bootstrap";
+@import "~bootstrap-icons/font/bootstrap-icons";
+
+// Custom variables – New palette
+$primary: #4A90E2;
+$secondary: #FF6F61;
+$success: #27AE60;
+$info: #4A90E2;
+$warning: #F5A623;
+$danger: #E74C3C;
+$light: #F0F2F8;
+$dark: #0F1117;
+
+// Override Bootstrap variables
+$theme-colors: (
+    "primary": $primary,
+    "secondary": $secondary,
+    "success": $success,
+    "info": $info,
+    "warning": $warning,
+    "danger": $danger,
+    "light": $light,
+    "dark": $dark,
+);
+
+// Import Bootstrap
+@import "~bootstrap/scss/bootstrap";
+
+// Custom styles
+body {
+    padding-top: 20px;
+}
+
+.card {
+    margin-bottom: 20px;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.table-responsive {
+    margin-bottom: 1rem;
+}
+
+.badge {
+    font-weight: 500;
+}
+
+.alert {
+    margin-bottom: 1rem;
+}
+
+/* Style pour les cartes */
+.card {
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 14px;
+}
+
+/* Style pour les boutons d'actions */
+.btn-group {
+    gap: 5px;
+}
+
+.btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.875rem;
+}
+
+/* Style pour le fil d'Ariane */
+.breadcrumb {
+    background-color: transparent;
+    padding: 0.75rem 0;
+    margin-bottom: 1rem;
+}
+
+.breadcrumb-item a {
+    color: #4A90E2;
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.breadcrumb-item a:hover {
+    color: #6AABF5;
+}
+
+.breadcrumb-item.active {
+    color: #8B92A5;
+}
+
+/* Style pour les tableaux */
+.table {
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.table th, .table td {
+    padding: 12px 15px;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.table th {
+    background-color: #242836;
+    color: #E8ECF4;
+    font-weight: 600;
+}
+
+.table tr:hover {
+    background-color: rgba(74, 144, 226, 0.05);
+    transition: background-color 0.2s;
+}

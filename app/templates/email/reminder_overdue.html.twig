@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rappel Facture Impayée</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background-color: #dc3545;
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+        }
+        .header .icon {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+        .reminder-badge {
+            display: inline-block;
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .urgent-box {
+            background-color: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .urgent-box strong {
+            color: #721c24;
+        }
+        .info-table {
+            width: 100%;
+            margin: 25px 0;
+            border-collapse: collapse;
+        }
+        .info-table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+        }
+        .info-table td:first-child {
+            background-color: #f5f5f5;
+            font-weight: bold;
+            width: 40%;
+        }
+        .overdue-highlight {
+            background-color: #fff3cd !important;
+            color: #856404;
+        }
+        .total-box {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 8px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .total-label {
+            font-size: 14px;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        .total-amount {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .overdue-info {
+            background-color: rgba(255, 255, 255, 0.2);
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-size: 16px;
+        }
+        .overdue-days {
+            font-size: 28px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .footer {
+            background-color: #f5f5f5;
+            padding: 25px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+        .footer p {
+            margin: 5px 0;
+        }
+        .divider {
+            border: none;
+            border-top: 1px solid #ddd;
+            margin: 15px 0;
+        }
+        .bank-info {
+            background-color: #e6f9f0;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+            border: 1px solid #00a651;
+        }
+        .bank-info h3 {
+            margin: 0 0 10px 0;
+            color: #00a651;
+            font-size: 16px;
+        }
+        .contact-box {
+            background-color: #d1ecf1;
+            border: 1px solid #bee5eb;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .contact-box h3 {
+            margin: 0 0 10px 0;
+            color: #0c5460;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- En-tête -->
+        <div class="header">
+            <div class="icon">🚨</div>
+            <h1>Rappel de Paiement</h1>
+            <p style="margin: 5px 0; font-size: 14px;">Facture en retard de paiement</p>
+            {% if reminderNumber %}
+            <div class="reminder-badge">Rappel #{{ reminderNumber }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Contenu principal -->
+        <div class="content">
+            <p>Bonjour <strong>{{ document.client.name }}</strong>,</p>
+
+            <div class="urgent-box">
+                <strong>🚨 URGENT :</strong> Nous constatons que la facture ci-dessous n'a toujours pas été réglée malgré le dépassement de la date d'échéance.
+            </div>
+
+            <!-- Informations facture -->
+            <table class="info-table">
+                <tr>
+                    <td>Facture N°</td>
+                    <td><strong>{{ document.number }}</strong></td>
+                </tr>
+                <tr>
+                    <td>Date d'émission</td>
+                    <td>{{ document.date|date('d/m/Y') }}</td>
+                </tr>
+                <tr class="overdue-highlight">
+                    <td>Date d'échéance</td>
+                    <td><strong>{{ document.dueDate|date('d/m/Y') }}</strong> ⚠️ DÉPASSÉE</td>
+                </tr>
+                <tr class="overdue-highlight">
+                    <td>Retard de paiement</td>
+                    <td><strong>{{ document.daysOverdue }} jour(s)</strong></td>
+                </tr>
+                {% if document.location %}
+                <tr>
+                    <td>Lieu</td>
+                    <td>{{ document.location }}</td>
+                </tr>
+                {% endif %}
+            </table>
+
+            <!-- Montant total -->
+            <div class="total-box">
+                <div class="total-label">Montant à régler d'urgence</div>
+                <div class="total-amount">{{ document.formattedTotalTtc }} {{ document.currency }}</div>
+
+                <div class="overdue-info">
+                    <div>⚠️ Échéance dépassée de</div>
+                    <div class="overdue-days">{{ document.daysOverdue }} jour(s)</div>
+                    <div style="font-size: 12px; opacity: 0.9; margin-top: 5px;">
+                        Date d'échéance : {{ document.dueDate|date('d/m/Y') }}
+                    </div>
+                </div>
+            </div>
+
+            {% if message %}
+            <p style="background-color: #f9f9f9; padding: 15px; border-left: 4px solid #dc3545; margin: 20px 0;">
+                {{ message|nl2br }}
+            </p>
+            {% else %}
+            <p style="background-color: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0;">
+                <strong>⚠️ Important :</strong> Nous vous remercions de bien vouloir régulariser cette situation dans les plus brefs délais pour éviter toute procédure de recouvrement.
+            </p>
+            {% endif %}
+
+            <!-- Informations bancaires -->
+            <div class="bank-info">
+                <h3>💳 Informations bancaires pour le règlement</h3>
+                <p style="margin: 5px 0;"><strong>Banque :</strong> {{ company.bankName }}</p>
+                <p style="margin: 5px 0;"><strong>N° de compte :</strong> {{ company.bankAccount }}</p>
+                <p style="margin: 10px 0 5px 0; font-size: 11px; color: #666;">
+                    ⚠️ Merci de mentionner le numéro de facture <strong>{{ document.number }}</strong> lors du virement
+                </p>
+            </div>
+
+            <!-- Informations de contact -->
+            <div class="contact-box">
+                <h3>📞 Besoin d'aide ?</h3>
+                <p style="margin: 5px 0;">
+                    Pour toute question ou difficulté de paiement, n'hésitez pas à nous contacter :
+                </p>
+                <p style="margin: 10px 0 5px 0;">
+                    <strong>Téléphone :</strong> {{ company.phone }}<br>
+                    {% if company.address %}
+                    <strong>Adresse :</strong> {{ company.address }}
+                    {% endif %}
+                </p>
+            </div>
+
+            <p style="margin-top: 30px; font-size: 14px; color: #666;">
+                Nous restons à votre disposition pour trouver une solution en cas de difficulté de paiement.
+            </p>
+
+            <p style="margin-top: 30px;">
+                Cordialement,<br>
+                <strong>{{ company.name }}</strong>
+            </p>
+        </div>
+
+        <!-- Pied de page -->
+        <div class="footer">
+            <p><strong>{{ company.name }}</strong></p>
+            {% if company.nameArabic %}
+            <p style="direction: rtl;">{{ company.nameArabic }}</p>
+            {% endif %}
+            <p>📞 {{ company.phone }}</p>
+            {% if company.address %}
+            <p>📍 {{ company.address }}</p>
+            {% endif %}
+            <hr class="divider">
+            <p>N° Registre : {{ company.registrationNumber }} | NIF : {{ company.nif }}</p>
+            <hr class="divider">
+            <p style="color: #999; font-size: 11px;">
+                Cet email a été généré automatiquement. Merci de ne pas y répondre directement.<br>
+                Pour toute question, contactez-nous au {{ company.phone }}
+            </p>
+        </div>
+    </div>
+</body>
+</html>

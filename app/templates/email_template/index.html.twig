@@ -1,0 +1,231 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Templates d'emails - Ouma Traiteur{% endblock %}
+
+{% block body %}
+<div class="container-fluid mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-0"><i class="bi bi-envelope-paper"></i> Templates d'emails</h1>
+            <p class="text-muted">Gestion des modèles d'emails personnalisables</p>
+        </div>
+        <a href="{{ path('app_email_template_new') }}" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Nouveau template
+        </a>
+    </div>
+
+    {# Statistiques #}
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-primary">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total</h6>
+                            <h2 class="mb-0">{{ stats.total }}</h2>
+                        </div>
+                        <div class="text-primary" style="font-size: 3rem;">
+                            <i class="bi bi-envelope-paper"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-success">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Actifs</h6>
+                            <h2 class="mb-0">{{ stats.actifs }}</h2>
+                        </div>
+                        <div class="text-success" style="font-size: 3rem;">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-info">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Par défaut</h6>
+                            <h2 class="mb-0">{{ stats.defaults }}</h2>
+                        </div>
+                        <div class="text-info" style="font-size: 3rem;">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Personnalisés</h6>
+                            <h2 class="mb-0">{{ stats.custom }}</h2>
+                        </div>
+                        <div class="text-warning" style="font-size: 3rem;">
+                            <i class="bi bi-star"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Filtres #}
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-6">
+                    <label for="search" class="form-label">
+                        <i class="bi bi-search"></i> Rechercher
+                    </label>
+                    <input type="text" class="form-control" id="search" name="search"
+                           value="{{ search }}" placeholder="Nom, code ou description...">
+                </div>
+                <div class="col-md-4">
+                    <label for="category" class="form-label">Catégorie</label>
+                    <select class="form-control" id="category" name="category">
+                        <option value="all" {% if category == 'all' %}selected{% endif %}>Toutes</option>
+                        <option value="document" {% if category == 'document' %}selected{% endif %}>
+                            Documents ({{ categoryCount.document|default(0) }})
+                        </option>
+                        <option value="user" {% if category == 'user' %}selected{% endif %}>
+                            Utilisateurs ({{ categoryCount.user|default(0) }})
+                        </option>
+                        <option value="payment" {% if category == 'payment' %}selected{% endif %}>
+                            Paiements ({{ categoryCount.payment|default(0) }})
+                        </option>
+                        <option value="reminder" {% if category == 'reminder' %}selected{% endif %}>
+                            Relances ({{ categoryCount.reminder|default(0) }})
+                        </option>
+                        <option value="other" {% if category == 'other' %}selected{% endif %}>
+                            Autre ({{ categoryCount.other|default(0) }})
+                        </option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Filtrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    {# Liste des templates #}
+    <div class="card">
+        <div class="card-body p-0">
+            {% if templates|length > 0 %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Nom</th>
+                                <th>Code</th>
+                                <th>Catégorie</th>
+                                <th>Sujet</th>
+                                <th class="text-center">Statut</th>
+                                <th>Modifié le</th>
+                                <th class="text-end">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for template in templates %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ template.name }}</strong>
+                                        {% if template.isDefault %}
+                                            <span class="badge bg-info ms-2">
+                                                <i class="bi bi-shield-check"></i> Défaut
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <code class="text-muted">{{ template.code }}</code>
+                                    </td>
+                                    <td>
+                                        {{ template.categoryBadge|raw }}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ template.subject|slice(0, 50) }}{% if template.subject|length > 50 %}...{% endif %}</small>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if template.isActive %}
+                                            <span class="badge bg-success">
+                                                <i class="bi bi-check-circle"></i> Actif
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-secondary">
+                                                <i class="bi bi-x-circle"></i> Inactif
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ template.updatedAt|date('d/m/Y H:i') }}
+                                        </small>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{{ path('app_email_template_show', {id: template.id}) }}"
+                                               class="btn btn-outline-info" title="Voir">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ path('app_email_template_preview', {id: template.id}) }}"
+                                               class="btn btn-outline-secondary" title="Prévisualiser" target="_blank">
+                                                <i class="bi bi-eye-fill"></i>
+                                            </a>
+                                            <a href="{{ path('app_email_template_edit', {id: template.id}) }}"
+                                               class="btn btn-outline-primary" title="Modifier">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+
+                                            {# Duplication #}
+                                            <form method="post"
+                                                  action="{{ path('app_email_template_duplicate', {id: template.id}) }}"
+                                                  style="display: inline;">
+                                                <input type="hidden" name="_token" value="{{ csrf_token('duplicate' ~ template.id) }}">
+                                                <button type="submit" class="btn btn-outline-warning" title="Dupliquer">
+                                                    <i class="bi bi-files"></i>
+                                                </button>
+                                            </form>
+
+                                            {# Suppression (sauf templates par défaut) #}
+                                            {% if not template.isDefault %}
+                                                <form method="post"
+                                                      action="{{ path('app_email_template_delete', {id: template.id}) }}"
+                                                      style="display: inline;"
+                                                      onsubmit="return confirm('Supprimer ce template ?');">
+                                                    <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ template.id) }}">
+                                                    <button type="submit" class="btn btn-outline-danger" title="Supprimer">
+                                                        <i class="bi bi-trash"></i>
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="bi bi-inbox" style="font-size: 4rem; color: #ccc;"></i>
+                    <p class="text-muted mt-3">Aucun template trouvé.</p>
+                    <a href="{{ path('app_email_template_new') }}" class="btn btn-primary">
+                        <i class="bi bi-plus-circle"></i> Créer un template
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

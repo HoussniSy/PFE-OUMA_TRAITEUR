@@ -1,0 +1,263 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Paramètres Email - Ouma Traiteur{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row">
+        <div class="col-lg-8 mx-auto">
+            {# En-tête #}
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="bi bi-envelope-gear"></i> Configuration Email</h1>
+                {% if hasConfig %}
+                    <span class="badge bg-success">
+                        <i class="bi bi-check-circle"></i> Configuré
+                    </span>
+                {% else %}
+                    <span class="badge bg-warning text-dark">
+                        <i class="bi bi-exclamation-triangle"></i> Non configuré
+                    </span>
+                {% endif %}
+            </div>
+
+            {# Carte d'explication #}
+            <div class="alert alert-info mb-4">
+                <h5 class="alert-heading"><i class="bi bi-info-circle"></i> Pourquoi configurer votre email ?</h5>
+                <p class="mb-0">
+                    Pour envoyer des devis et factures à vos clients, vous devez configurer vos paramètres d'envoi d'emails.
+                    Les documents seront envoyés depuis <strong>votre propre adresse email</strong>.
+                </p>
+            </div>
+
+            {# Configuration automatique #}
+            {% if suggestions %}
+            <div class="card mb-4 border-primary">
+                <div class="card-header bg-primary text-white">
+                    <i class="bi bi-magic"></i> Configuration Automatique Détectée
+                </div>
+                <div class="card-body">
+                    <p class="mb-3">
+                        <i class="bi bi-lightbulb"></i>
+                        Nous avons détecté que vous utilisez <strong>{{ suggestions.note|split('Utilisez')|first }}</strong>.
+                        Cliquez ci-dessous pour configurer automatiquement les paramètres.
+                    </p>
+                    <form method="post" action="{{ path('app_user_settings_email_auto') }}">
+                        <input type="hidden" name="_token" value="{{ csrf_token('auto-configure') }}">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-magic"></i> Configuration Automatique
+                        </button>
+                    </form>
+                    <div class="alert alert-warning mt-3 mb-0">
+                        <small><i class="bi bi-exclamation-triangle"></i> {{ suggestions.note }}</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            {# Formulaire de configuration #}
+            <div class="card shadow-sm">
+                <div class="card-header bg-white">
+                    <h5 class="mb-0"><i class="bi bi-gear"></i> Paramètres SMTP</h5>
+                </div>
+                <div class="card-body">
+                    {{ form_start(form) }}
+
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            {{ form_row(form.smtpHost) }}
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            {{ form_row(form.smtpPort) }}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_row(form.smtpUsername) }}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_row(form.smtpPassword) }}
+                        {% if hasConfig %}
+                            <small class="text-muted">
+                                <i class="bi bi-info-circle"></i> Laissez vide pour conserver le mot de passe actuel
+                            </small>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        {{ form_row(form.smtpEncryption) }}
+                    </div>
+
+                    <div class="d-flex gap-2 mt-4">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-save"></i> Enregistrer
+                        </button>
+
+                        {% if hasConfig %}
+                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#testModal">
+                                <i class="bi bi-send-check"></i> Tester la Configuration
+                            </button>
+
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#resetModal">
+                                <i class="bi bi-arrow-clockwise"></i> Réinitialiser
+                            </button>
+                        {% endif %}
+                    </div>
+
+                    {{ form_end(form) }}
+                </div>
+            </div>
+
+            {# Instructions #}
+            <div class="card mt-4 border-info">
+                <div class="card-header bg-info text-white">
+                    <i class="bi bi-book"></i> Instructions de Configuration
+                </div>
+                <div class="card-body">
+                    <div class="accordion" id="instructionsAccordion">
+                        {# Gmail #}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#gmailInstructions">
+                                    <i class="bi bi-google"></i> &nbsp; Configuration pour Gmail
+                                </button>
+                            </h2>
+                            <div id="gmailInstructions" class="accordion-collapse collapse" data-bs-parent="#instructionsAccordion">
+                                <div class="accordion-body">
+                                    <ol>
+                                        <li>Allez sur <a href="https://myaccount.google.com/" target="_blank">votre compte Google</a></li>
+                                        <li>Activez la <strong>Validation en deux étapes</strong> (obligatoire)</li>
+                                        <li>Accédez à <strong>Sécurité</strong> → <strong>Mots de passe des applications</strong></li>
+                                        <li>Créez un nouveau mot de passe d'application pour "Ouma Traiteur"</li>
+                                        <li>Copiez le mot de passe généré (16 caractères)</li>
+                                        <li>Utilisez ces paramètres :
+                                            <ul>
+                                                <li><strong>Serveur :</strong> smtp.gmail.com</li>
+                                                <li><strong>Port :</strong> 587</li>
+                                                <li><strong>Email :</strong> votre.email@gmail.com</li>
+                                                <li><strong>Mot de passe :</strong> le mot de passe d'application</li>
+                                                <li><strong>Cryptage :</strong> TLS</li>
+                                            </ul>
+                                        </li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Outlook #}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#outlookInstructions">
+                                    <i class="bi bi-microsoft"></i> &nbsp; Configuration pour Outlook/Hotmail
+                                </button>
+                            </h2>
+                            <div id="outlookInstructions" class="accordion-collapse collapse" data-bs-parent="#instructionsAccordion">
+                                <div class="accordion-body">
+                                    <ol>
+                                        <li>Utilisez votre mot de passe Outlook/Hotmail normal</li>
+                                        <li>Paramètres :
+                                            <ul>
+                                                <li><strong>Serveur :</strong> smtp-mail.outlook.com</li>
+                                                <li><strong>Port :</strong> 587</li>
+                                                <li><strong>Email :</strong> votre.email@outlook.com (ou @hotmail.com)</li>
+                                                <li><strong>Mot de passe :</strong> votre mot de passe Outlook</li>
+                                                <li><strong>Cryptage :</strong> TLS</li>
+                                            </ul>
+                                        </li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+
+                        {# Yahoo #}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#yahooInstructions">
+                                    <i class="bi bi-envelope"></i> &nbsp; Configuration pour Yahoo
+                                </button>
+                            </h2>
+                            <div id="yahooInstructions" class="accordion-collapse collapse" data-bs-parent="#instructionsAccordion">
+                                <div class="accordion-body">
+                                    <ol>
+                                        <li>Générez un mot de passe d'application Yahoo</li>
+                                        <li>Paramètres :
+                                            <ul>
+                                                <li><strong>Serveur :</strong> smtp.mail.yahoo.com</li>
+                                                <li><strong>Port :</strong> 587</li>
+                                                <li><strong>Email :</strong> votre.email@yahoo.com</li>
+                                                <li><strong>Mot de passe :</strong> mot de passe d'application</li>
+                                                <li><strong>Cryptage :</strong> TLS</li>
+                                            </ul>
+                                        </li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {# Informations de sécurité #}
+            <div class="alert alert-warning mt-4">
+                <h6 class="alert-heading"><i class="bi bi-shield-lock"></i> Sécurité</h6>
+                <p class="mb-0">
+                    <small>
+                        Votre mot de passe est stocké de manière cryptée dans la base de données.
+                        Personne, pas même les administrateurs, ne peut voir votre mot de passe en clair.
+                    </small>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Modal de test #}
+<div class="modal fade" id="testModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-send-check"></i> Tester la Configuration</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Un email de test va être envoyé à votre adresse :</p>
+                <p class="text-center"><strong>{{ user.smtpUsername }}</strong></p>
+                <p>Vérifiez votre boîte de réception après l'envoi.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form method="post" action="{{ path('app_user_settings_email_test') }}" class="d-inline">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-send"></i> Envoyer l'Email de Test
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Modal de réinitialisation #}
+<div class="modal fade" id="resetModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="bi bi-exclamation-triangle"></i> Confirmer la Réinitialisation</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir réinitialiser votre configuration email ?</p>
+                <p class="text-danger"><strong>Attention :</strong> Tous vos paramètres SMTP seront supprimés.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                <form method="post" action="{{ path('app_user_settings_email_reset') }}" class="d-inline">
+                    <input type="hidden" name="_token" value="{{ csrf_token('reset-email') }}">
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-arrow-clockwise"></i> Réinitialiser
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

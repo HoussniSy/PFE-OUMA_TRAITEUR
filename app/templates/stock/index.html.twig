@@ -1,0 +1,155 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Gestion des stocks{% endblock %}
+
+{% block body %}
+<div class="container-fluid py-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h1 class="h3 mb-1">
+                <i class="bi bi-box-seam me-2"></i>Gestion des stocks
+            </h1>
+            <p class="text-muted mb-0">Suivez vos ingrédients et fournitures</p>
+        </div>
+        <a href="{{ path('app_stock_new') }}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Nouvel article
+        </a>
+    </div>
+
+    {# Alertes stock faible #}
+    {% if lowStockCount > 0 %}
+        <div class="alert alert-warning d-flex align-items-center mb-4" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+            <div>
+                <strong>{{ lowStockCount }}</strong> article{{ lowStockCount > 1 ? 's' : '' }} en stock faible !
+                <a href="{{ path('app_stock_index', {'filter': 'low'}) }}" class="alert-link ms-1">Voir les alertes</a>
+            </div>
+        </div>
+    {% endif %}
+
+    {# Filtres #}
+    <div class="btn-group mb-3" role="group">
+        <a href="{{ path('app_stock_index', {'filter': 'all'}) }}" class="btn btn-sm {{ currentFilter == 'all' ? 'btn-primary' : 'btn-outline-primary' }}">
+            <i class="bi bi-grid me-1"></i>Tous
+        </a>
+        <a href="{{ path('app_stock_index', {'filter': 'low'}) }}" class="btn btn-sm {{ currentFilter == 'low' ? 'btn-danger' : 'btn-outline-danger' }}">
+            <i class="bi bi-exclamation-triangle me-1"></i>Stock faible
+            {% if lowStockCount > 0 %}
+                <span class="badge bg-white text-danger ms-1">{{ lowStockCount }}</span>
+            {% endif %}
+        </a>
+    </div>
+
+    {% if items is empty %}
+        <div class="card border-0 shadow-sm">
+            <div class="card-body text-center py-5">
+                <i class="bi bi-box-seam display-1 text-muted mb-3"></i>
+                <h5>Aucun article en stock</h5>
+                <p class="text-muted">Commencez à gérer votre stock en ajoutant un article.</p>
+                <a href="{{ path('app_stock_new') }}" class="btn btn-primary">
+                    <i class="bi bi-plus-lg me-1"></i>Ajouter un article
+                </a>
+            </div>
+        </div>
+    {% else %}
+        <div class="card border-0 shadow-sm">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Article</th>
+                            <th>Quantité</th>
+                            <th>Min.</th>
+                            <th>Statut</th>
+                            <th>Prix unit.</th>
+                            <th>Dernier réappro.</th>
+                            <th class="text-end">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in items %}
+                            <tr>
+                                <td>
+                                    <strong>{{ item.name }}</strong>
+                                    {% if item.description %}
+                                        <br><small class="text-muted">{{ item.description|u.truncate(50) }}</small>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="fw-bold">{{ item.formattedQuantity }}</span>
+                                </td>
+                                <td>{{ item.minimumQuantity|number_format(2, ',', ' ') }} {{ item.unit }}</td>
+                                <td>
+                                    <span class="badge {{ item.stockBadgeClass }}">
+                                        {{ item.stockStatusLabel }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if item.unitPrice %}
+                                        {{ item.unitPrice|number_format(2, ',', ' ') }} MRU
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if item.lastRestockedAt %}
+                                        {{ item.lastRestockedAt|date('d/m/Y') }}
+                                    {% else %}
+                                        <span class="text-muted">Jamais</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    {# Bouton réapprovisionner #}
+                                    <button type="button" class="btn btn-sm btn-outline-success" data-bs-toggle="modal" data-bs-target="#restockModal{{ item.id }}">
+                                        <i class="bi bi-plus-circle me-1"></i>Réappro.
+                                    </button>
+                                    <a href="{{ path('app_stock_edit', {'id': item.id}) }}" class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    {% if is_granted('ROLE_COMPTABLE') %}
+                                        <form action="{{ path('app_stock_delete', {'id': item.id}) }}" method="post" class="d-inline" onsubmit="return confirm('Supprimer cet article ?');">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ item.id) }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    {% endif %}
+                                </td>
+                            </tr>
+
+                            {# Modal réapprovisionnement #}
+                            <div class="modal fade" id="restockModal{{ item.id }}" tabindex="-1">
+                                <div class="modal-dialog modal-sm">
+                                    <div class="modal-content">
+                                        <form action="{{ path('app_stock_restock', {'id': item.id}) }}" method="post">
+                                            <input type="hidden" name="_token" value="{{ csrf_token('restock' ~ item.id) }}">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Réapprovisionner</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p class="mb-2"><strong>{{ item.name }}</strong></p>
+                                                <p class="text-muted small mb-3">Stock actuel : {{ item.formattedQuantity }}</p>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Quantité à ajouter ({{ item.unit }})</label>
+                                                    <input type="number" name="quantity" class="form-control" step="0.01" min="0.01" required>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-sm btn-outline-secondary" data-bs-dismiss="modal">Annuler</button>
+                                                <button type="submit" class="btn btn-sm btn-success">
+                                                    <i class="bi bi-plus-circle me-1"></i>Réapprovisionner
+                                                </button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

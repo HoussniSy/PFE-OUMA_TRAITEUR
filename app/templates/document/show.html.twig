@@ -1,0 +1,558 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ document.typeLabel }} {{ document.number }} - Ouma Traiteur{% endblock %}
+
+{% block stylesheets %}
+<style>
+    .document-header {
+        background: linear-gradient(135deg, #00a651 0%, #008040 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 10px 10px 0 0;
+    }
+    .document-body {
+        padding: 2rem;
+        background: white;
+    }
+    .info-label {
+        font-weight: 600;
+        color: #6c757d;
+    }
+    .bank-info {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 8px;
+        border-left: 4px solid #00a651;
+    }
+    .payment-section {
+        background: #f8f9fa;
+        padding: 1.5rem;
+        border-radius: 10px;
+        border: 2px solid #00a651;
+        margin-top: 2rem;
+    }
+    .payment-card {
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+    }
+    .amount-badge {
+        font-size: 1.2rem;
+        padding: 0.5rem 1rem;
+    }
+
+    @media print {
+        .no-print {
+            display: none !important;
+        }
+        .document-header {
+            background: white !important;
+            color: black !important;
+            border-bottom: 3px solid #00a651;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .document-header, .document-body {
+            padding: 1rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row mb-3 no-print">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ path('app_dashboard') }}">Accueil</a></li>
+                    <li class="breadcrumb-item"><a href="{{ path('app_document_index') }}">Documents</a></li>
+                    <li class="breadcrumb-item active">{{ document.number }}</li>
+                </ol>
+            </nav>
+        </div>
+    </div>
+
+    {# Actions #}
+    <div class="row mb-3 no-print">
+        <div class="col-md-8">
+            <div class="btn-group" role="group">
+                <a href="{{ path('app_document_edit', {id: document.id}) }}" class="btn btn-secondary">
+                    <i class="bi bi-pencil"></i> Modifier
+                </a>
+                <a href="{{ path('app_document_pdf', {id: document.id}) }}" class="btn btn-danger" target="_blank">
+                    <i class="bi bi-file-pdf"></i> PDF
+                </a>
+                <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#emailModal">
+                    <i class="bi bi-envelope"></i> Envoyer
+                </button>
+                <button type="button" class="btn btn-primary" onclick="window.print()">
+                    <i class="bi bi-printer"></i> Imprimer
+                </button>
+
+                {% if document.type == 'quote' %}
+                    <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#convertModal">
+                        <i class="bi bi-arrow-right-circle"></i> Convertir en facture
+                    </button>
+                {% endif %}
+
+                {% if is_granted('ROLE_COMPTABLE') %}
+                    <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+                        <i class="bi bi-trash"></i> Supprimer
+                    </button>
+                {% endif %}
+
+                {# Bouton Envoyer un rappel (seulement pour les factures impayées) #}
+                {% if document.type == 'invoice' and not document.isFullyPaid %}
+                    <button type="button" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#reminderModal">
+                        <i class="bi bi-bell"></i> Envoyer un rappel
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+
+        {# Dropdown changement de statut #}
+        <div class="col-md-4 text-end">
+            <div class="dropdown">
+                <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-flag"></i> Changer le statut
+                </button>
+                <ul class="dropdown-menu">
+                    {% if document.status == constant('App\\Entity\\Document::STATUS_DRAFT') %}
+                        <li>
+                            <form method="post" action="{{ path('app_document_change_status', {id: document.id}) }}" class="dropdown-item">
+                                <input type="hidden" name="status" value="{{ constant('App\\Entity\\Document::STATUS_SENT') }}">
+                                <button type="submit" class="btn btn-link p-0 text-decoration-none text-info">
+                                    <i class="bi bi-send"></i> Marquer comme envoyé
+                                </button>
+                            </form>
+                        </li>
+                    {% endif %}
+
+                    {% if is_granted('ROLE_COMPTABLE') and document.type == constant('App\\Entity\\Document::TYPE_INVOICE') %}
+                        {% if document.status in [constant('App\\Entity\\Document::STATUS_SENT'), constant('App\\Entity\\Document::STATUS_PARTIALLY_PAID')] %}
+                            <li>
+                                <form method="post" action="{{ path('app_document_change_status', {id: document.id}) }}" class="dropdown-item">
+                                    <input type="hidden" name="status" value="{{ constant('App\\Entity\\Document::STATUS_PAID') }}">
+                                    <button type="submit" class="btn btn-link p-0 text-decoration-none text-success">
+                                        <i class="bi bi-check-circle"></i> Marquer comme payé
+                                    </button>
+                                </form>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if is_granted('ROLE_ADMIN') %}
+                        {% if document.status != constant('App\\Entity\\Document::STATUS_CANCELLED') %}
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form method="post" action="{{ path('app_document_change_status', {id: document.id}) }}" class="dropdown-item">
+                                    <input type="hidden" name="status" value="{{ constant('App\\Entity\\Document::STATUS_CANCELLED') }}">
+                                    <button type="submit" class="btn btn-link p-0 text-decoration-none text-danger"
+                                            onclick="return confirm('Êtes-vous sûr de vouloir annuler ce document ?')">
+                                        <i class="bi bi-x-circle"></i> Annuler
+                                    </button>
+                                </form>
+                            </li>
+                        {% endif %}
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    {# Document #}
+    <div class="card shadow">
+        {# En-tête #}
+        <div class="document-header">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    {% if company and company.logo %}
+                        <img src="{{ asset('uploads/logos/' ~ company.logo) }}" alt="Logo" style="max-height: 80px;" class="mb-2">
+                    {% endif %}
+                    <h2 class="mb-0">{{ company ? company.name : 'Ouma Traiteur' }}</h2>
+                    {% if company and company.nameArabic %}
+                        <p class="mb-1" dir="rtl">{{ company.nameArabic }}</p>
+                    {% endif %}
+                    {% if company %}
+                        <p class="mb-0 small">
+                            N° Registre : {{ company.registrationNumber }}<br>
+                            NIF : {{ company.nif }}<br>
+                            Tél : {{ company.phone }}
+                        </p>
+                    {% endif %}
+                </div>
+                <div class="col-md-6 text-md-end mt-3 mt-md-0">
+                    <span class="badge {{ document.statusBadgeClass }} fs-6 mb-2">
+                        {{ document.statusLabel }}
+                    </span>
+                    <h1 class="display-6 mb-2">{{ document.typeLabel }}</h1>
+                    <h3>{{ document.number }}</h3>
+                    <p class="mb-0">
+                        <strong>Date :</strong> {{ document.date|date('d/m/Y') }}<br>
+                        {% if document.location %}
+                            <strong>Lieu :</strong> {{ document.location }}
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        {# Corps du document #}
+        <div class="document-body">
+            {# Informations client #}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5 class="border-bottom pb-2 mb-3">Informations client</h5>
+                    <p class="mb-1"><span class="info-label">Client :</span> <strong>{{ document.client.name }}</strong></p>
+                    {% if document.client.address %}
+                        <p class="mb-1"><span class="info-label">Adresse :</span> {{ document.client.address }}</p>
+                    {% endif %}
+                    {% if document.client.phone %}
+                        <p class="mb-1"><span class="info-label">Téléphone :</span> {{ document.client.phone }}</p>
+                    {% endif %}
+                    {% if document.client.email %}
+                        <p class="mb-1"><span class="info-label">Email :</span> {{ document.client.email }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            {# Prestations #}
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5 class="border-bottom pb-2 mb-3">Prestations</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Désignation</th>
+                                    <th class="text-center">Nb jours</th>
+                                    <th class="text-center">Nb pers.</th>
+                                    <th class="text-center">Nb serv.</th>
+                                    <th class="text-end">Prix unit.</th>
+                                    <th class="text-end">Montant</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for item in document.items %}
+                                    <tr>
+                                        <td>{{ item.designation }}</td>
+                                        <td class="text-center">{{ item.numberOfDays }}</td>
+                                        <td class="text-center">{{ item.numberOfPersons }}</td>
+                                        <td class="text-center">{{ item.numberOfServices }}</td>
+                                        <td class="text-end">{{ item.unitPrice|number_format(0, ',', ' ') }} {{ document.currency }}</td>
+                                        <td class="text-end"><strong>{{ item.totalAmount|number_format(0, ',', ' ') }} {{ document.currency }}</strong></td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            {# Totaux #}
+            <div class="row mb-4">
+                <div class="col-md-6 offset-md-6">
+                    <table class="table">
+                        <tr>
+                            <td><strong>Total HT :</strong></td>
+                            <td class="text-end">{{ document.totalHt|number_format(0, ',', ' ') }} {{ document.currency }}</td>
+                        </tr>
+                        <tr>
+                            <td><strong>TVA ({{ document.taxRate }}%) :</strong></td>
+                            <td class="text-end">{{ ((document.totalHt * document.taxRate) / 100)|number_format(0, ',', ' ') }} {{ document.currency }}</td>
+                        </tr>
+                        <tr class="table-success">
+                            <td><strong>Total TTC :</strong></td>
+                            <td class="text-end"><h5 class="mb-0">{{ document.totalTtc|number_format(0, ',', ' ') }} {{ document.currency }}</h5></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            {# Section Paiements (uniquement pour les factures) #}
+            {% if document.type == constant('App\\Entity\\Document::TYPE_INVOICE') %}
+                <div class="payment-section">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="mb-0"><i class="bi bi-credit-card"></i> Informations de paiement</h5>
+                        {% if is_granted('ROLE_COMPTABLE') and document.status != constant('App\\Entity\\Document::STATUS_CANCELLED') %}
+                            <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                                <i class="bi bi-plus-circle"></i> Ajouter un paiement
+                            </button>
+                        {% endif %}
+                    </div>
+
+                    {# Résumé des montants #}
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <small class="text-muted">Montant total</small>
+                                <div class="amount-badge badge bg-primary">
+                                    {{ document.totalTtc|number_format(0, ',', ' ') }} MRU
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <small class="text-muted">Montant payé</small>
+                                <div class="amount-badge badge bg-success">
+                                    {{ document.totalPaid|number_format(0, ',', ' ') }} MRU
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-center">
+                                <small class="text-muted">Reste à payer</small>
+                                <div class="amount-badge badge {{ document.remainingAmount > 0 ? 'bg-warning' : 'bg-success' }}">
+                                    {{ document.remainingAmount|number_format(0, ',', ' ') }} MRU
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {# Liste des paiements #}
+                    {% if document.payments|length > 0 %}
+                        <h6 class="mt-4 mb-3">Historique des paiements</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Montant</th>
+                                        <th>Mode</th>
+                                        <th>Référence</th>
+                                        <th>Statut</th>
+                                        {% if is_granted('ROLE_COMPTABLE') %}
+                                            <th class="text-end no-print">Actions</th>
+                                        {% endif %}
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for payment in document.payments %}
+                                        <tr>
+                                            <td>{{ payment.datePaiement|date('d/m/Y') }}</td>
+                                            <td><strong>{{ payment.montant|number_format(0, ',', ' ') }} MRU</strong></td>
+                                            <td>
+                                                {% if payment.modePaiement == 'especes' %}
+                                                    <i class="bi bi-cash"></i> Espèces
+                                                {% elseif payment.modePaiement == 'cheque' %}
+                                                    <i class="bi bi-file-text"></i> Chèque
+                                                {% elseif payment.modePaiement == 'virement' %}
+                                                    <i class="bi bi-bank"></i> Virement
+                                                {% elseif payment.modePaiement == 'carte' %}
+                                                    <i class="bi bi-credit-card"></i> Carte
+                                                {% endif %}
+                                            </td>
+                                            <td>{{ payment.reference|default('-') }}</td>
+                                            <td>
+                                                {% if payment.statutPaiement == 'recu' %}
+                                                    <span class="badge bg-success">Reçu</span>
+                                                {% elseif payment.statutPaiement == 'en_attente' %}
+                                                    <span class="badge bg-warning">En attente</span>
+                                                {% else %}
+                                                    <span class="badge bg-danger">Annulé</span>
+                                                {% endif %}
+                                            </td>
+                                            {% if is_granted('ROLE_COMPTABLE') %}
+                                                <td class="text-end no-print">
+                                                    <form method="post" action="{{ path('app_payment_delete', {id: payment.id}) }}"
+                                                          style="display: inline;"
+                                                          onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce paiement ?')">
+                                                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ payment.id) }}">
+                                                        <button type="submit" class="btn btn-danger btn-sm">
+                                                            <i class="bi bi-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </td>
+                                            {% endif %}
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle"></i> Aucun paiement enregistré pour cette facture.
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            {# Informations bancaires #}
+            {% if company %}
+                <div class="row mt-4">
+                    <div class="col-12">
+                        <div class="bank-info">
+                            <p class="mb-1"><strong>Informations bancaires</strong></p>
+                            <p class="mb-0">{{ company.bankName }} - Compte n° {{ company.bankAccount }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            {# Signature #}
+            <div class="row mt-4">
+                <div class="col-md-4 offset-md-8 text-end">
+                    <p class="text-muted">Signature</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{# Modal Ajout Paiement #}
+{% if is_granted('ROLE_COMPTABLE') and document.type == constant('App\\Entity\\Document::TYPE_INVOICE') %}
+<div class="modal fade" id="paymentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="get" action="{{ path('app_payment_add') }}">
+                <input type="hidden" name="document" value="{{ document.id }}">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Ajouter un paiement</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Facture :</strong> {{ document.number }}</p>
+                    <p><strong>Montant restant :</strong> <span class="badge bg-warning">{{ document.remainingAmount|number_format(0, ',', ' ') }} MRU</span></p>
+                    <p class="text-muted small">Vous serez redirigé vers le formulaire complet de paiement.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-success">Continuer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# Modal Email #}
+<div class="modal fade" id="emailModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{{ path('app_document_send_email', {id: document.id}) }}">
+                <div class="modal-header">
+                    <h5 class="modal-title">Envoyer par email</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Email</label>
+                        <input type="email" name="email" class="form-control"
+                               value="{{ document.client.email }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Message (optionnel)</label>
+                        <textarea name="message" class="form-control" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">Envoyer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{# Modal Conversion #}
+{% if document.type == 'quote' %}
+<div class="modal fade" id="convertModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{{ path('app_document_convert_to_invoice', {id: document.id}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('convert' ~ document.id) }}">
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">Convertir en facture</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Êtes-vous sûr de vouloir convertir ce devis en facture ?</p>
+                    <p class="text-muted small">Une nouvelle facture sera créée avec les mêmes informations.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-success">Convertir</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# Modal Suppression #}
+{% if is_granted('ROLE_COMPTABLE') %}
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{{ path('app_document_delete', {id: document.id}) }}">
+                <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ document.id) }}">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Supprimer le document</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Êtes-vous sûr de vouloir supprimer ce document ?</p>
+                    <p class="text-danger"><strong>Cette action est irréversible !</strong></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger">Supprimer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{# Modal pour envoyer un rappel #}
+<div class="modal fade" id="reminderModal" tabindex="-1" aria-labelledby="reminderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{{ path('app_document_send_reminder', {'id': document.id}) }}">
+                <div class="modal-header bg-warning">
+                    <h5 class="modal-title" id="reminderModalLabel">
+                        <i class="bi bi-bell"></i> Envoyer un rappel de paiement
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle"></i>
+                        <strong>Facture :</strong> {{ document.number }}<br>
+                        <strong>Client :</strong> {{ document.client.name }}<br>
+                        <strong>Email :</strong> {{ document.client.email }}<br>
+                        <strong>Montant :</strong> {{ document.formattedTotalTtc }} {{ document.currency }}
+                        {% if document.dueDate %}
+                            <br><strong>Échéance :</strong> {{ document.dueDate|date('d/m/Y') }}
+                            {% if document.isOverdue %}
+                                <span class="badge bg-danger">Retard : {{ document.daysOverdue }} jour(s)</span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="reminderMessage" class="form-label">Message personnalisé (optionnel)</label>
+                        <textarea class="form-control" id="reminderMessage" name="message" rows="4"
+                                  placeholder="Ajoutez un message personnalisé pour le client..."></textarea>
+                        <div class="form-text">
+                            Un message de rappel standard sera envoyé si vous laissez ce champ vide.
+                        </div>
+                    </div>
+
+                    <input type="hidden" name="_token" value="{{ csrf_token('send-reminder' ~ document.id) }}">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-send"></i> Envoyer le rappel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

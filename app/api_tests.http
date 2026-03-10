@@ -1,0 +1,230 @@
+### Variables (Change token here)
+@host = http://localhost:8000
+@email = email@example.com
+@password = password123
+@token = your_jwt_token_here
+
+# =========================================================
+# AUTHENTICATION
+# =========================================================
+
+### Obtenir le Token JWT (Login)
+# @name login
+POST {{host}}/api/login
+Content-Type: application/json
+
+{
+    "email": "{{email}}",
+    "password": "{{password}}"
+}
+
+# =========================================================
+# UTILISATEUR (ApiUserController)
+# =========================================================
+
+### Obtenir les informations de l'utilisateur connecté
+GET {{host}}/api/me
+Authorization: Bearer {{token}}
+
+# =========================================================
+# TABLEAU DE BORD (ApiDashboardController)
+# =========================================================
+
+### Obtenir les statistiques du tableau de bord
+GET {{host}}/api/dashboard
+Authorization: Bearer {{token}}
+
+# =========================================================
+# ENTREPRISES (ApiCompanyController)
+# =========================================================
+
+### Liste des entreprises (Celle de l'utilisateur ou toutes si Admin)
+GET {{host}}/api/companies
+Authorization: Bearer {{token}}
+
+### Obtenir une entreprise spécifique
+GET {{host}}/api/companies/1
+Authorization: Bearer {{token}}
+
+# =========================================================
+# CLIENTS (ApiClientController)
+# =========================================================
+
+### Liste des clients (avec pagination et recherche)
+GET {{host}}/api/clients?page=1&search=
+Authorization: Bearer {{token}}
+
+### Obtenir un client spécifique
+GET {{host}}/api/clients/1
+Authorization: Bearer {{token}}
+
+### Créer un client
+POST {{host}}/api/clients
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "name": "Nouveau Client Test",
+    "email": "client@test.com",
+    "phone": "+222 45 00 00 00",
+    "address": "Nouakchott, Mauritanie"
+}
+
+### Mettre à jour un client
+PUT {{host}}/api/clients/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "name": "Client Modifié",
+    "phone": "+222 45 11 11 11"
+}
+
+### Supprimer un client (Nécessite ROLE_ADMIN)
+DELETE {{host}}/api/clients/1
+Authorization: Bearer {{token}}
+
+# =========================================================
+# DOCUMENTS (ApiDocumentController)
+# =========================================================
+
+### Liste des documents (Filtres: type (quote/invoice), status, search)
+GET {{host}}/api/documents?page=1&type=&status=&search=
+Authorization: Bearer {{token}}
+
+### Obtenir un document spécifique
+GET {{host}}/api/documents/1
+Authorization: Bearer {{token}}
+
+### Créer un document (Ex: Devis)
+POST {{host}}/api/documents
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "type": "quote",
+    "clientId": 1,
+    "date": "2026-03-05",
+    "location": "Nouakchott",
+    "taxRate": "16.00",
+    "currency": "MRU",
+    "paymentTerms": 30,
+    "status": "draft",
+    "items": [
+        {
+            "designation": "Prestation de service 1",
+            "numberOfDays": 2,
+            "numberOfPersons": 1,
+            "numberOfServices": 1,
+            "unitPrice": "15000.00",
+            "position": 1
+        }
+    ]
+}
+
+### Mettre à jour un document
+PUT {{host}}/api/documents/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "status": "sent"
+}
+
+### Convertir un devis en facture
+POST {{host}}/api/documents/1/convert
+Authorization: Bearer {{token}}
+
+### Télécharger le PDF du document (Le retour est binaire)
+GET {{host}}/api/documents/1/pdf
+Authorization: Bearer {{token}}
+
+### Envoyer le document par email
+POST {{host}}/api/documents/1/send
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "email": "client_destination@test.com",
+    "message": "Veuillez trouver ci-joint votre document."
+}
+
+### Supprimer un document (Nécessite ROLE_ADMIN)
+DELETE {{host}}/api/documents/1
+Authorization: Bearer {{token}}
+
+
+# =========================================================
+# PAIEMENTS (ApiPaymentController)
+# =========================================================
+
+### Liste des paiements
+GET {{host}}/api/payments?page=1
+Authorization: Bearer {{token}}
+
+### Obtenir un paiement spécifique
+GET {{host}}/api/payments/1
+Authorization: Bearer {{token}}
+
+### Créer un paiement pour une facture (DocumentId requis)
+POST {{host}}/api/payments
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "documentId": 1,
+    "montant": "15000.00",
+    "modePaiement": "especes",
+    "statutPaiement": "recu",
+    "reference": "REF-PAY-001",
+    "notes": "Paiement en espèces",
+    "datePaiement": "2026-03-05T10:00:00+01:00"
+}
+
+# =========================================================
+# STOCKS (ApiStockController)
+# =========================================================
+
+### Liste des articles en stock
+GET {{host}}/api/stock_items?page=1
+Authorization: Bearer {{token}}
+
+### Obtenir un article de stock spécifique
+GET {{host}}/api/stock_items/1
+Authorization: Bearer {{token}}
+
+### Créer un nouvel article en stock
+POST {{host}}/api/stock_items
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "name": "Tomates",
+    "description": "Tomates fraîches",
+    "unit": "kg",
+    "currentQuantity": "50.00",
+    "minimumQuantity": "10.00",
+    "unitPrice": "30.00"
+}
+
+### Mettre à jour ou réapprovisionner un article en stock
+PUT {{host}}/api/stock_items/1
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "restockQuantity": "20.50",
+    "unitPrice": "32.00"
+}
+
+### Supprimer un article (Nécessite ROLE_ADMIN)
+DELETE {{host}}/api/stock_items/1
+Authorization: Bearer {{token}}
+
+# =========================================================
+# RAPPORTS (ApiReportController)
+# =========================================================
+
+### Obtenir le résumé pour les rapports / chiffres d'affaires
+GET {{host}}/api/reports/summary?year=2026
+Authorization: Bearer {{token}}

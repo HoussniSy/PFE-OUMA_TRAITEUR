@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prévisualisation - {{ template.name }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .email-preview {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        .email-header {
+            background: linear-gradient(135deg, #00a651 0%, #008741 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px 10px 0 0;
+        }
+        .email-body {
+            padding: 30px;
+            min-height: 300px;
+        }
+        .email-meta {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 0 0 10px 10px;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        .toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: white;
+            padding: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    {# Barre d'outils #}
+    <div class="toolbar">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h5 class="mb-0">
+                    <i class="bi bi-eye-fill"></i> Prévisualisation : {{ template.name }}
+                </h5>
+                <small class="text-muted">Données de test - Ceci est un aperçu</small>
+            </div>
+            <div>
+                <button onclick="window.print()" class="btn btn-outline-primary me-2">
+                    <i class="bi bi-printer"></i> Imprimer
+                </button>
+                <a href="{{ path('app_email_template_show', {id: template.id}) }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-x-circle"></i> Fermer
+                </a>
+            </div>
+        </div>
+    </div>
+
+    {# Aperçu de l'email #}
+    <div class="email-preview">
+        {# En-tête de l'email #}
+        <div class="email-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h6 class="mb-1">
+                        <i class="bi bi-envelope"></i> Nouvel email
+                    </h6>
+                    <small style="opacity: 0.9;">De: <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="4826273a2d38243108273d25293c3a29213c2d3d3a66253a">[email&#160;protected]</a></small>
+                </div>
+                <div>
+                    {{ template.categoryBadge|raw }}
+                </div>
+            </div>
+        </div>
+
+        {# Métadonnées #}
+        <div class="email-meta border-bottom">
+            <div class="row">
+                <div class="col-md-6">
+                    <strong>À :</strong> <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="e1828e8f95808295a1848594828095888e8fcf868e97cf8c93">[email&#160;protected]</a>
+                </div>
+                <div class="col-md-6 text-end">
+                    <strong>Date :</strong> {{ 'now'|date('d/m/Y à H:i') }}
+                </div>
+            </div>
+            <div class="mt-2">
+                <strong>Sujet :</strong> {{ subject }}
+            </div>
+        </div>
+
+        {# Corps de l'email #}
+        <div class="email-body">
+            {{ body|raw }}
+        </div>
+
+        {# Pied de page #}
+        <div class="email-meta">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <small>
+                        <i class="bi bi-info-circle"></i>
+                        Ceci est une prévisualisation avec des données de test
+                    </small>
+                </div>
+                <div>
+                    <small class="text-muted">Template : <code>{{ template.code }}</code></small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Informations supplémentaires #}
+    <div class="mt-4 text-center">
+        <div class="alert alert-info d-inline-block">
+            <i class="bi bi-lightbulb"></i>
+            <strong>Astuce :</strong> Les vraies valeurs seront insérées lors de l'envoi réel de l'email.
+        </div>
+    </div>
+
+    {# Détails techniques (masqués à l'impression) #}
+    <div class="mt-4 d-print-none">
+        <div class="card">
+            <div class="card-header bg-dark text-white">
+                <h6 class="mb-0">
+                    <i class="bi bi-code-square"></i> Détails techniques
+                </h6>
+            </div>
+            <div class="card-body">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#html-source">
+                            Code HTML
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" data-bs-toggle="tab" data-bs-target="#variables-used">
+                            Variables utilisées
+                        </button>
+                    </li>
+                </ul>
+                <div class="tab-content p-3 border border-top-0">
+                    <div class="tab-pane fade show active" id="html-source">
+                        <pre class="bg-dark text-light p-3 rounded" style="max-height: 400px; overflow-y: auto;"><code>{{ body }}</code></pre>
+                    </div>
+                    <div class="tab-pane fade" id="variables-used">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h6>Sujet :</h6>
+                                <pre class="bg-light p-2 rounded">{{ template.subject }}</pre>
+                            </div>
+                            <div class="col-md-6">
+                                <h6>Variables détectées :</h6>
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% set variables = template.subject ~ ' ' ~ template.body %}
+                                    {% if '{{numero}}' in variables %}<span class="badge bg-primary">{{ '{{numero}}' }}</span>{% endif %}
+                                    {% if '{{type}}' in variables %}<span class="badge bg-primary">{{ '{{type}}' }}</span>{% endif %}
+                                    {% if '{{date}}' in variables %}<span class="badge bg-primary">{{ '{{date}}' }}</span>{% endif %}
+                                    {% if '{{montant_ttc}}' in variables %}<span class="badge bg-primary">{{ '{{montant_ttc}}' }}</span>{% endif %}
+                                    {% if '{{nom_client}}' in variables %}<span class="badge bg-info">{{ '{{nom_client}}' }}</span>{% endif %}
+                                    {% if '{{email_client}}' in variables %}<span class="badge bg-info">{{ '{{email_client}}' }}</span>{% endif %}
+                                    {% if '{{nom_entreprise}}' in variables %}<span class="badge bg-success">{{ '{{nom_entreprise}}' }}</span>{% endif %}
+                                    {% if '{{message_personnalise}}' in variables %}<span class="badge bg-warning">{{ '{{message_personnalise}}' }}</span>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

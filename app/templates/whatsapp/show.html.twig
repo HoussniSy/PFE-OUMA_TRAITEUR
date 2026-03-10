@@ -1,0 +1,101 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}WhatsApp - Détail{% endblock %}
+
+{% block body %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1><i class="bi bi-whatsapp"></i> Détail du message</h1>
+                <a href="{{ path('app_whatsapp_index') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Retour
+                </a>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Destinataire:</strong><br>
+                            {% if waMessage.client %}
+                                <a href="{{ path('app_client_show', {id: waMessage.client.id}) }}">
+                                    {{ waMessage.recipientName }}
+                                </a>
+                            {% else %}
+                                {{ waMessage.recipientName ?? '—' }}
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Numéro WhatsApp:</strong><br>
+                            <code>{{ waMessage.recipientPhone }}</code>
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <strong>Type:</strong><br>
+                            {% if waMessage.messageType == 'document' %}
+                                <span class="badge bg-info"><i class="bi bi-file-earmark"></i> {{ waMessage.messageTypeLabel }}</span>
+                            {% elseif waMessage.messageType == 'template' %}
+                                <span class="badge bg-purple"><i class="bi bi-layout-text-sidebar"></i> {{ waMessage.messageTypeLabel }}</span>
+                            {% else %}
+                                <span class="badge bg-light text-dark"><i class="bi bi-chat-text"></i> {{ waMessage.messageTypeLabel }}</span>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Statut:</strong><br>
+                            <span class="badge {{ waMessage.statusBadgeClass }}">
+                                {{ waMessage.statusLabel }}
+                            </span>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Date d'envoi:</strong><br>
+                            {{ waMessage.sentAt ? waMessage.sentAt|date('d/m/Y H:i:s') : '—' }}
+                        </div>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Créé le:</strong><br>
+                            {{ waMessage.createdAt|date('d/m/Y H:i:s') }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>ID externe (WAMid):</strong><br>
+                            <code>{{ waMessage.externalId ?? '—' }}</code>
+                        </div>
+                    </div>
+
+                    {% if waMessage.messageType == 'document' and waMessage.documentName %}
+                    <div class="mb-3">
+                        <strong>Document envoyé:</strong><br>
+                        <div class="d-flex align-items-center mt-1">
+                            <i class="bi bi-file-earmark-pdf text-danger me-2" style="font-size: 1.5rem;"></i>
+                            <span>{{ waMessage.documentName }}</span>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <hr>
+
+                    {% if waMessage.message %}
+                    <div class="mb-3">
+                        <strong>{{ waMessage.messageType == 'document' ? 'Légende:' : 'Message:' }}</strong>
+                        <div class="p-3 mt-2" style="background-color: #dcf8c6; border-radius: 12px;">
+                            {{ waMessage.message|nl2br }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    {% if waMessage.errorMessage %}
+                    <div class="alert alert-danger">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <strong>Erreur:</strong> {{ waMessage.errorMessage }}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

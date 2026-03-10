@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bienvenue sur Ouma Traiteur</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            background: linear-gradient(135deg, #00a651 0%, #008040 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+            border-radius: 10px 10px 0 0;
+        }
+        .content {
+            background: #ffffff;
+            padding: 30px;
+            border: 1px solid #e0e0e0;
+            border-top: none;
+            border-radius: 0 0 10px 10px;
+        }
+        .password-box {
+            background: #f8f9fa;
+            border-left: 4px solid #00a651;
+            padding: 15px;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 18px;
+            text-align: center;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .button {
+            display: inline-block;
+            background: #00a651;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 12px;
+        }
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 style="margin: 0;">☕ Ouma Traiteur</h1>
+        <p style="margin: 10px 0 0 0; font-size: 16px;">Bienvenue dans notre équipe !</p>
+    </div>
+
+    <div class="content">
+        <h2 style="color: #00a651;">Bonjour {{ user.fullName }} !</h2>
+
+        <p>Votre compte Ouma Traiteur a été créé avec succès. Vous pouvez maintenant accéder à notre système de gestion de devis et factures.</p>
+
+        <h3>Vos informations de connexion :</h3>
+        <ul>
+            <li><strong>Email :</strong> {{ user.email }}</li>
+            <li><strong>Rôle :</strong> {{ user.roleName }}</li>
+        </ul>
+
+        <h3>Votre mot de passe temporaire :</h3>
+        <div class="password-box">
+            {{ temporaryPassword }}
+        </div>
+
+        <div class="warning">
+            <strong>⚠️ Important :</strong><br>
+            Pour des raisons de sécurité, nous vous recommandons vivement de changer ce mot de passe lors de votre première connexion.
+        </div>
+
+        <div style="text-align: center;">
+            <a href="http://localhost:8001/login" class="button">
+                Se connecter maintenant
+            </a>
+        </div>
+
+        <h3>Que faire ensuite ?</h3>
+        <ol>
+            <li>Connectez-vous avec vos identifiants ci-dessus</li>
+            <li>Allez dans "Mon profil" pour changer votre mot de passe</li>
+            <li>Complétez vos informations personnelles si nécessaire</li>
+            <li>Commencez à utiliser l'application !</li>
+        </ol>
+
+        <p>Si vous rencontrez des difficultés ou avez des questions, n'hésitez pas à contacter votre administrateur.</p>
+
+        <p style="margin-top: 30px;">
+            Cordialement,<br>
+            <strong>L'équipe Ouma Traiteur</strong>
+        </p>
+    </div>
+
+    <div class="footer">
+        © {{ 'now'|date('Y') }} Ouma Traiteur - Tous droits réservés<br>
+        📞 46246698 | 📍 Nouakchott, Mauritanie
+    </div>
+</body>
+</html>
