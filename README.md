@@ -262,7 +262,7 @@ La documentation interactive (Swagger UI) est disponible à :
 
 ## 👨‍💻 Auteur
 
-Projet de fin d'études (PFE) — **OUMA TRAITEUR**
+Projet de fin d'études (PFE) — **EL HOUSSEINE SY // HAKEEM**
 
 ---
 
