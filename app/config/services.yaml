@@ -88,3 +88,14 @@ services:
             $whatsappApiToken: '%env(WHATSAPP_API_TOKEN)%'
             $whatsappPhoneNumberId: '%env(WHATSAPP_PHONE_NUMBER_ID)%'
             $whatsappBusinessAccountId: '%env(WHATSAPP_BUSINESS_ACCOUNT_ID)%'
+
+    # ========================================
+    # DÉCORATEUR OPENAPI - JWT BEARER AUTH
+    # ========================================
+
+    # Ajoute le schéma de sécurité JWT à la doc Swagger UI
+    App\ApiResource\JwtOpenApiDecorator:
+        decorates: 'api_platform.openapi.factory'
+        arguments:
+            $decorated: '@.inner'
+
