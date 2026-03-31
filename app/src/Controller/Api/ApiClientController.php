@@ -16,7 +16,7 @@ class ApiClientController extends AbstractController
     /**
      * Liste des clients avec pagination et recherche.
      */
-    #[Route('/api/clients', name: 'api_clients_list', methods: ['GET'])]
+    #[Route('/api/v1/clients', name: 'api_clients_list', methods: ['GET'])]
     public function list(Request $request, ClientRepository $clientRepository): JsonResponse
     {
         $page = max(1, $request->query->getInt('page', 1));
@@ -54,7 +54,7 @@ class ApiClientController extends AbstractController
     /**
      * Obtenir un client spécifique.
      */
-    #[Route('/api/clients/{id}', name: 'api_clients_show', methods: ['GET'])]
+    #[Route('/api/v1/clients/{id}', name: 'api_clients_show', methods: ['GET'])]
     public function show(int $id, ClientRepository $clientRepository): JsonResponse
     {
         $client = $clientRepository->find($id);
@@ -77,7 +77,7 @@ class ApiClientController extends AbstractController
     /**
      * Créer un client.
      */
-    #[Route('/api/clients', name: 'api_clients_create', methods: ['POST'])]
+    #[Route('/api/v1/clients', name: 'api_clients_create', methods: ['POST'])]
     public function create(
         Request $request,
         EntityManagerInterface $em,
@@ -123,7 +123,7 @@ class ApiClientController extends AbstractController
     /**
      * Mettre à jour un client.
      */
-    #[Route('/api/clients/{id}', name: 'api_clients_update', methods: ['PUT'])]
+    #[Route('/api/v1/clients/{id}', name: 'api_clients_update', methods: ['PUT'])]
     public function update(
         int $id,
         Request $request,
@@ -169,7 +169,7 @@ class ApiClientController extends AbstractController
     /**
      * Supprimer un client (ROLE_ADMIN uniquement).
      */
-    #[Route('/api/clients/{id}', name: 'api_clients_delete', methods: ['DELETE'])]
+    #[Route('/api/v1/clients/{id}', name: 'api_clients_delete', methods: ['DELETE'])]
     public function delete(
         int $id,
         ClientRepository $clientRepository,

@@ -115,7 +115,7 @@ class ApiDocumentController extends AbstractController
     /**
      * Liste des documents avec filtrage et pagination.
      */
-    #[Route('/api/documents', name: 'api_documents_list', methods: ['GET'])]
+    #[Route('/api/v1/documents', name: 'api_documents_list', methods: ['GET'])]
     public function list(Request $request, DocumentRepository $documentRepository): JsonResponse
     {
         $page = max(1, $request->query->getInt('page', 1));
@@ -145,7 +145,7 @@ class ApiDocumentController extends AbstractController
     /**
      * Obtenir un document spécifique (détail complet).
      */
-    #[Route('/api/documents/{id}', name: 'api_documents_show', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[Route('/api/v1/documents/{id}', name: 'api_documents_show', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function show(int $id, DocumentRepository $documentRepository): JsonResponse
     {
         $document = $documentRepository->find($id);
@@ -160,7 +160,7 @@ class ApiDocumentController extends AbstractController
     /**
      * Créer un document.
      */
-    #[Route('/api/documents', name: 'api_documents_create', methods: ['POST'])]
+    #[Route('/api/v1/documents', name: 'api_documents_create', methods: ['POST'])]
     public function create(
         Request $request,
         ClientRepository $clientRepository,
@@ -168,7 +168,7 @@ class ApiDocumentController extends AbstractController
         EntityManagerInterface $em,
         ValidatorInterface $validator
     ): JsonResponse {
-        $data = json_decode($request->getContent(), true);
+        $data = json_decode($request->getContent(), true) ?? [];
 
         $document = new Document();
         $document->setType($data['type'] ?? 'quote');
@@ -238,7 +238,7 @@ class ApiDocumentController extends AbstractController
     /**
      * Mettre à jour un document.
      */
-    #[Route('/api/documents/{id}', name: 'api_documents_update', methods: ['PUT'], requirements: ['id' => '\d+'])]
+    #[Route('/api/v1/documents/{id}', name: 'api_documents_update', methods: ['PUT'], requirements: ['id' => '\d+'])]
     public function update(
         int $id,
         Request $request,
@@ -252,7 +252,7 @@ class ApiDocumentController extends AbstractController
             return $this->json(['message' => 'Document non trouvé.'], 404);
         }
 
-        $data = json_decode($request->getContent(), true);
+        $data = json_decode($request->getContent(), true) ?? [];
 
         if (isset($data['status'])) $document->setStatus($data['status']);
         if (isset($data['location'])) $document->setLocation($data['location']);
@@ -281,7 +281,7 @@ class ApiDocumentController extends AbstractController
     /**
      * Convertir un devis en facture.
      */
-    #[Route('/api/documents/{id}/convert', name: 'api_documents_convert', methods: ['POST'])]
+    #[Route('/api/v1/documents/{id}/convert', name: 'api_documents_convert', methods: ['POST'])]
     public function convert(
         int $id,
         DocumentRepository $documentRepository,
@@ -338,7 +338,7 @@ class ApiDocumentController extends AbstractController
     /**
      * Télécharger le PDF d'un document.
      */
-    #[Route('/api/documents/{id}/pdf', name: 'api_documents_pdf', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[Route('/api/v1/documents/{id}/pdf', name: 'api_documents_pdf', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function downloadPdf(
         int $id,
         DocumentRepository $documentRepository,
@@ -351,7 +351,9 @@ class ApiDocumentController extends AbstractController
         }
 
         try {
-            $pdfContent = $pdfGenerator->generateDocumentPdf($document);
+            $company = $document->getCompany() ?? null;
+            $pdfResponse = $pdfGenerator->generateDocumentPdf($document, $company);
+            $pdfContent = $pdfResponse->getContent();
 
             $filename = $document->getNumber() . '.pdf';
 
@@ -360,7 +362,7 @@ class ApiDocumentController extends AbstractController
                 'Content-Disposition' => 'attachment; filename="' . $filename . '"',
                 'Content-Length' => strlen($pdfContent),
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return $this->json(['message' => 'Erreur lors de la génération du PDF : ' . $e->getMessage()], 500);
         }
     }
@@ -368,12 +370,13 @@ class ApiDocumentController extends AbstractController
     /**
      * Envoyer un document par email.
      */
-    #[Route('/api/documents/{id}/send', name: 'api_documents_send', methods: ['POST'], requirements: ['id' => '\d+'])]
+    #[Route('/api/v1/documents/{id}/send', name: 'api_documents_send', methods: ['POST'], requirements: ['id' => '\d+'])]
     public function sendByEmail(
         int $id,
         Request $request,
         DocumentRepository $documentRepository,
-        EmailService $emailService
+        EmailService $emailService,
+        \Doctrine\ORM\EntityManagerInterface $em
     ): JsonResponse {
         $document = $documentRepository->find($id);
 
@@ -381,7 +384,7 @@ class ApiDocumentController extends AbstractController
             return $this->json(['message' => 'Document non trouvé.'], 404);
         }
 
-        $data = json_decode($request->getContent(), true);
+        $data = json_decode($request->getContent(), true) ?? [];
         $email = $data['email'] ?? $document->getClient()?->getEmail();
         $message = $data['message'] ?? null;
 
@@ -392,11 +395,17 @@ class ApiDocumentController extends AbstractController
         try {
             $emailService->sendDocumentByEmail($document, $email, $message);
 
+            if ($document->getStatus() === \App\Entity\Document::STATUS_DRAFT) {
+                $document->setStatus(\App\Entity\Document::STATUS_SENT);
+                $em->flush();
+            }
+
             return $this->json([
                 'message' => 'Document envoyé avec succès à ' . $email,
                 'email' => $email,
+                'status' => $document->getStatus()
             ]);
-        } catch (\Exception $e) {
+        } catch (\Throwable $e) {
             return $this->json(['message' => 'Erreur lors de l\'envoi : ' . $e->getMessage()], 500);
         }
     }
@@ -404,7 +413,7 @@ class ApiDocumentController extends AbstractController
     /**
      * Supprimer un document (ROLE_ADMIN uniquement).
      */
-    #[Route('/api/documents/{id}', name: 'api_documents_delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]
+    #[Route('/api/v1/documents/{id}', name: 'api_documents_delete', methods: ['DELETE'], requirements: ['id' => '\d+'])]
     public function delete(
         int $id,
         DocumentRepository $documentRepository,

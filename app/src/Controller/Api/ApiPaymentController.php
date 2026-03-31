@@ -37,7 +37,7 @@ class ApiPaymentController extends AbstractController
     /**
      * Liste des paiements avec pagination.
      */
-    #[Route('/api/payments', name: 'api_payments_list', methods: ['GET'])]
+    #[Route('/api/v1/payments', name: 'api_payments_list', methods: ['GET'])]
     public function list(Request $request, PaymentRepository $paymentRepository): JsonResponse
     {
         $page = max(1, $request->query->getInt('page', 1));
@@ -60,7 +60,7 @@ class ApiPaymentController extends AbstractController
     /**
      * Obtenir un paiement spécifique.
      */
-    #[Route('/api/payments/{id}', name: 'api_payments_show', methods: ['GET'])]
+    #[Route('/api/v1/payments/{id}', name: 'api_payments_show', methods: ['GET'])]
     public function show(int $id, PaymentRepository $paymentRepository): JsonResponse
     {
         $payment = $paymentRepository->find($id);
@@ -75,7 +75,7 @@ class ApiPaymentController extends AbstractController
     /**
      * Créer un paiement.
      */
-    #[Route('/api/payments', name: 'api_payments_create', methods: ['POST'])]
+    #[Route('/api/v1/payments', name: 'api_payments_create', methods: ['POST'])]
     public function create(
         Request $request,
         DocumentRepository $documentRepository,

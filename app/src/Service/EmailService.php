@@ -232,6 +232,27 @@ class EmailService
     }
 
     /**
+     * Envoie un document par email via l'API (méthode simplifiée sans Company en paramètre).
+     * Récupère la Company directement depuis le document.
+     */
+    public function sendDocumentByEmail(
+        Document $document,
+        string $recipientEmail,
+        ?string $message = null
+    ): void {
+        $company = $document->getCompany();
+
+        if (!$company) {
+            // Créer une entreprise par défaut temporaire pour ne pas bloquer l'envoi
+            $company = new Company();
+            $company->setName('Ouma Traiteur');
+            $company->setPhone('+222 45 67 89 00');
+        }
+
+        $this->sendDocument($document, $company, $recipientEmail, null, $message);
+    }
+
+    /**
      * Envoie un email de notification simple
      */
     public function sendNotification(
